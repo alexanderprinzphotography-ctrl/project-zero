@@ -21,6 +21,8 @@ Ausführlicher Kontext in `docs/Projektkontext.md`, Fahrplan in `docs/Implementi
 - Keine Secrets im Code oder Repo. Alles über Env-Variablen; `.env.local` ist gitignored.
 - Tagebuch-Einträge sind append-only (unveränderlich) — auf DB-Ebene erzwingen.
 - Bei Geldbeträgen und rechtsverbindlichen Dokumenten immer Mensch-im-Kreislauf; KI-Ausgabe nie ungeprüft verbindlich machen.
+- Trial-/Abo-Sperre: Schreib-Policies (INSERT/UPDATE/DELETE) auf Geschäftsdaten enthalten immer `company_is_writable()`; SELECT nicht. Nach Trial-Ablauf gilt firmenweit Nur-Lese-Zugriff, auf DB-Ebene erzwungen.
+- Rollen: `admin` (Firmen-Owner, volle Verwaltung), `projektleiter` (Projekte/Team), `mitarbeiter` (operativ). Einladungen nur durch `admin`.
 
 ## Arbeitsweise
 - Immer im Scope des aktuellen Meilensteins bleiben. NICHT vorausschauend Features aus späteren Schritten bauen.

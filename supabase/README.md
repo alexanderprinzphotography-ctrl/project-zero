@@ -1,16 +1,16 @@
-# Supabase-Setup — MS 1a
+# Supabase-Setup
 
-## 1. Migration anwenden
+## 1. Migrationen anwenden
 
-Die Migration `migrations/20260706095904_ms1a_auth_companies_profiles.sql` manuell im
-Supabase-Dashboard ausführen:
+Migrationen manuell im Supabase-Dashboard ausführen, in aufsteigender Dateireihenfolge:
 
 1. Supabase-Dashboard → dein Projekt → **SQL Editor** → **New query**.
-2. Inhalt von `supabase/migrations/20260706095904_ms1a_auth_companies_profiles.sql`
-   komplett einfügen.
-3. **Run**. Bei Erfolg existieren die Tabellen `companies`/`profiles`, RLS ist aktiv,
-   und die Funktionen `current_company_id()`, `current_user_role()`, `register_company()`
-   sind angelegt.
+2. Inhalt der jeweiligen `.sql`-Datei komplett einfügen, **Run**.
+
+| Datei | Bringt |
+| --- | --- |
+| `20260706095904_ms1a_auth_companies_profiles.sql` | `companies`/`profiles`, RLS, `current_company_id()`, `current_user_role()`, `register_company()` |
+| `20260706113116_ms1b_invitations_trial_lifecycle.sql` | `invitations` (admin-only RLS), `company_is_writable()` (Trial-Sperre), `get_invitation_preview()`, `accept_invitation()` |
 
 Spätere Migrationen kommen als weitere, zeitlich aufsteigend benannte `.sql`-Dateien in
 denselben Ordner und werden nach demselben Muster eingespielt.

@@ -3,9 +3,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/core/auth/actions";
 import type { UserContext } from "@/core/auth/get-user-context";
+import { TrialBanner } from "@/core/ui/trial-banner";
 
 /**
- * Grundgerüst der App: Header mit Platzhalter-Logo, leere Seitennavigation, Content-Bereich.
+ * Grundgerüst der App: Header mit Platzhalter-Logo, Seitennavigation, Content-Bereich.
  * Branchenagnostisch — branchenspezifische Navigation kommt später aus modules/handwerk.
  */
 export function AppShell({
@@ -47,12 +48,22 @@ export function AppShell({
           </div>
         )}
       </header>
+      {userContext && <TrialBanner context={userContext} />}
       <div className="flex flex-1">
         <aside
           aria-label="Seitennavigation"
           className="hidden w-56 shrink-0 border-r border-border p-4 md:block"
         >
-          {/* Navigation folgt mit Rollen-/Modul-Logik in einem späteren Meilenstein */}
+          {userContext && userContext.role !== "mitarbeiter" && (
+            <nav className="flex flex-col gap-1 text-sm">
+              <Link
+                href="/team"
+                className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+              >
+                Team
+              </Link>
+            </nav>
+          )}
         </aside>
         <main className="flex-1 p-6">{children}</main>
       </div>
