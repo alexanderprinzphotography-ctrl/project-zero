@@ -74,6 +74,12 @@ export function AppShell({
           {userContext && (
             <nav className="flex flex-col gap-1 text-sm">
               <Link
+                href="/projekte"
+                className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+              >
+                Projekte
+              </Link>
+              <Link
                 href="/kunden"
                 className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
               >

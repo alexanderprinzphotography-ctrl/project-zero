@@ -14,6 +14,7 @@ export type UserContext = {
   primaryColor: string | null;
   accentColor: string | null;
   logoUrl: string | null;
+  projectVisibility: string;
 };
 
 type ProfileRow = {
@@ -28,6 +29,7 @@ type ProfileRow = {
     primary_color: string | null;
     accent_color: string | null;
     logo_url: string | null;
+    project_visibility: string;
   } | null;
 };
 
@@ -61,7 +63,7 @@ export async function getUserContext(): Promise<UserContext | null> {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "company_id, full_name, role, email, companies(name, plan_status, trial_ends_at, primary_color, accent_color, logo_url)",
+      "company_id, full_name, role, email, companies(name, plan_status, trial_ends_at, primary_color, accent_color, logo_url, project_visibility)",
     )
     .eq("id", user.id)
     .maybeSingle<ProfileRow>();
@@ -86,5 +88,6 @@ export async function getUserContext(): Promise<UserContext | null> {
     primaryColor: profile.companies?.primary_color ?? null,
     accentColor: profile.companies?.accent_color ?? null,
     logoUrl: profile.companies?.logo_url ?? null,
+    projectVisibility: profile.companies?.project_visibility ?? "all",
   };
 }
