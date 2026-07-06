@@ -39,10 +39,13 @@ export default async function ProjektePage({
   const canSeeWriteButtons = ["admin", "projektleiter"].includes(context.role);
 
   const supabase = await createClient();
+  // project_members hat zwei Fremdschluessel auf profiles (user_id, assigned_by) -
+  // ohne den expliziten Hint kann PostgREST die Einbettung nicht eindeutig aufloesen
+  // (Fehler PGRST201, Query liefert dann komplett null statt einer Teilmenge).
   let query = supabase
     .from("projects")
     .select(
-      "id, project_number, title, status, site_city, is_archived, contacts(type, company_name, first_name, last_name), project_members(user_id, profiles(full_name, email))",
+      "id, project_number, title, status, site_city, is_archived, contacts(type, company_name, first_name, last_name), project_members(user_id, profiles!project_members_user_id_fkey(full_name, email))",
     )
     .order("project_number", { ascending: true });
 
@@ -62,7 +65,10 @@ export default async function ProjektePage({
     query = query.or(orParts.join(","));
   }
 
-  const { data } = await query;
+  const { data, error } = await query;
+  if (error) {
+    console.error("Fehler beim Laden der Projektliste:", error);
+  }
   const projects = (data as unknown as ProjectRow[] | null) ?? [];
 
   return (
@@ -124,6 +130,12 @@ export default async function ProjektePage({
           Filtern
         </Button>
       </form>
+
+      {error && (
+        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          Projekte konnten nicht geladen werden. Bitte versuche es erneut.
+        </p>
+      )}
 
       <table className="w-full text-sm">
         <thead>

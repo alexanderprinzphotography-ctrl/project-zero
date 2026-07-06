@@ -65,9 +65,11 @@ export default async function ProjektDetailPage({
   const canWrite = ["admin", "projektleiter"].includes(context.role);
   const canEdit = canWrite && context.isWritable;
 
+  // project_members hat zwei Fremdschluessel auf profiles (user_id, assigned_by) -
+  // ohne den expliziten Hint kann PostgREST die Einbettung nicht eindeutig aufloesen.
   const { data: membersData } = await supabase
     .from("project_members")
-    .select("id, user_id, assigned_at, profiles(full_name, email)")
+    .select("id, user_id, assigned_at, profiles!project_members_user_id_fkey(full_name, email)")
     .eq("project_id", id)
     .order("assigned_at", { ascending: true });
   const members = (membersData as unknown as MemberRow[] | null) ?? [];
