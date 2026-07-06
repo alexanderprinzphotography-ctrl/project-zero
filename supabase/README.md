@@ -15,6 +15,7 @@ Migrationen manuell im Supabase-Dashboard ausführen, in aufsteigender Dateireih
 | `20260706180035_ms3_crm_contacts.sql` | `contacts` (RLS: lesen alle Rollen, schreiben nur admin/projektleiter + Trial-Sperre), `company_counters` + `next_customer_number()` für race-sichere, pro Firma fortlaufende Kundennummer |
 | `20260706184710_ms4_projects.sql` | `company_counters` verallgemeinert (gekeytes Zähler-Design), `projects`/`project_members`, `companies.project_visibility`, sichtbarkeitsabhängige RLS (`company_project_visibility()`, `is_project_member()`), Cross-Company-Validierung für `customer_id`/`user_id` |
 | `20260706194708_ms5a_diary_core.sql` | `diary_entries`/`diary_photos` (append-only, Hash-Kette pro Projekt über `append_diary_entry()`), `verify_diary()`, harte Update/Delete-Sperre per Trigger, privater Storage-Bucket `diary-photos` |
+| `20260706225041_ms6_time_entries.sql` | `time_entries` (Timer + manuell, exakte Dauer aus Zeitstempeln, DST-sicher), Partial-Unique-Index für max. einen laufenden Timer pro Nutzer, RLS (eigene Einträge + admin/PL alle) |
 
 Spätere Migrationen kommen als weitere, zeitlich aufsteigend benannte `.sql`-Dateien in
 denselben Ordner und werden nach demselben Muster eingespielt.

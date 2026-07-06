@@ -85,6 +85,12 @@ export function AppShell({
               >
                 Kunden
               </Link>
+              <Link
+                href="/zeiten"
+                className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+              >
+                Zeiten
+              </Link>
               {userContext.role !== "mitarbeiter" && (
                 <Link
                   href="/team"

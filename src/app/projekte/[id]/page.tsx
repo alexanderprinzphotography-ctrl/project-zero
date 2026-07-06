@@ -8,11 +8,15 @@ import { contactDisplayName, type ContactType } from "@/core/crm/contact";
 import { projectStatusLabel, type Project } from "@/core/projects/project";
 import { handwerkProjectFields } from "@/modules/handwerk/project-fields";
 import type { DiaryCategory, DiaryEntry } from "@/core/diary/entry";
+import type { TimeEntrySource } from "@/core/time/entry";
 import { ArchiveToggleButton } from "./archive-toggle-button";
 import { StatusChanger } from "./status-changer";
 import { AddMemberForm, type AssignableUser } from "./add-member-form";
 import { RemoveMemberButton } from "./remove-member-button";
 import { DiarySection } from "./diary-section";
+import { TimerControl } from "@/app/zeiten/timer-control";
+import { TimeEntryList } from "@/app/zeiten/time-entry-list";
+import type { DisplayTimeEntry } from "@/app/zeiten/time-entry-row";
 
 function Field({ label, value }: { label: string; value: string | null }) {
   if (!value) return null;
@@ -57,6 +61,18 @@ type DiaryEntryRow = {
   diary_photos: { id: string; storage_path: string }[];
 };
 
+type TimeEntryRowData = {
+  id: string;
+  project_id: string;
+  user_id: string;
+  started_at: string;
+  ended_at: string | null;
+  break_minutes: number;
+  note: string | null;
+  entry_source: TimeEntrySource;
+  profiles: { full_name: string | null; email: string | null } | null;
+};
+
 export default async function ProjektDetailPage({
   params,
 }: {
@@ -88,13 +104,15 @@ export default async function ProjektDetailPage({
   const members = (membersData as unknown as MemberRow[] | null) ?? [];
 
   let availableUsers: AssignableUser[] = [];
+  let allCompanyProfiles: AssignableUser[] = [];
   if (canWrite) {
     const { data: allProfiles } = await supabase
       .from("profiles")
       .select("id, full_name, email")
       .order("created_at", { ascending: true });
+    allCompanyProfiles = allProfiles ?? [];
     const assignedIds = new Set(members.map((m) => m.user_id));
-    availableUsers = (allProfiles ?? []).filter((p) => !assignedIds.has(p.id));
+    availableUsers = allCompanyProfiles.filter((p) => !assignedIds.has(p.id));
   }
 
   // diary_entries -> profiles hat nur EINEN Fremdschluessel (author_id), also
@@ -135,6 +153,42 @@ export default async function ProjektDetailPage({
   }));
 
   const canVerifyDiary = ["admin", "projektleiter"].includes(context.role);
+
+  // time_entries hat mehrere Fremdschluessel auf profiles (user_id, created_by,
+  // updated_by) - expliziter Hint noetig, sonst PGRST201 (siehe project_members).
+  const { data: timeRows } = await supabase
+    .from("time_entries")
+    .select(
+      "id, project_id, user_id, started_at, ended_at, break_minutes, note, entry_source, profiles!time_entries_user_id_fkey(full_name, email)",
+    )
+    .eq("project_id", id)
+    .order("started_at", { ascending: false });
+  const timeEntries: DisplayTimeEntry[] = ((timeRows as unknown as TimeEntryRowData[] | null) ?? []).map(
+    (row) => ({
+      id: row.id,
+      project_id: row.project_id,
+      user_id: row.user_id,
+      started_at: row.started_at,
+      ended_at: row.ended_at,
+      break_minutes: row.break_minutes,
+      note: row.note,
+      entry_source: row.entry_source,
+      authorName: row.profiles?.full_name || row.profiles?.email || "Unbekannt",
+    }),
+  );
+
+  const { data: runningTimerRow } = await supabase
+    .from("time_entries")
+    .select("id, started_at, project_id")
+    .eq("user_id", context.userId)
+    .is("ended_at", null)
+    .maybeSingle();
+
+  const timeUserOptions = canWrite
+    ? allCompanyProfiles
+        .filter((p) => p.id !== context.userId)
+        .map((p) => ({ id: p.id, label: p.full_name || p.email || p.id }))
+    : [];
 
   const address = [
     project.site_street,
@@ -244,9 +298,42 @@ export default async function ProjektDetailPage({
         </CardContent>
       </Card>
 
+      <Card className="max-w-3xl">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Zeiterfassung</CardTitle>
+          {context.isWritable && (
+            <TimerControl
+              projectId={project.id}
+              runningEntry={
+                runningTimerRow && runningTimerRow.project_id === project.id
+                  ? { id: runningTimerRow.id, started_at: runningTimerRow.started_at }
+                  : null
+              }
+            />
+          )}
+        </CardHeader>
+        <CardContent>
+          {runningTimerRow && runningTimerRow.project_id !== project.id && (
+            <p className="mb-3 text-sm text-muted-foreground">
+              Ein Timer läuft gerade auf einem anderen Projekt. Bitte dort zuerst stoppen.
+            </p>
+          )}
+          <TimeEntryList
+            entries={timeEntries}
+            projectOptions={[{ id: project.id, label: project.title }]}
+            userOptions={timeUserOptions}
+            currentUserId={context.userId}
+            isAdminOrPL={canWrite}
+            isWritable={context.isWritable}
+            defaultProjectId={project.id}
+            showProject={false}
+          />
+        </CardContent>
+      </Card>
+
       <Card className="max-w-xl">
         <CardHeader>
-          <CardTitle>Zeiterfassung &amp; Angebote</CardTitle>
+          <CardTitle>Angebote</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           Kommt in späteren Meilensteinen.
