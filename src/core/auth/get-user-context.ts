@@ -5,18 +5,30 @@ export type UserContext = {
   email: string;
   fullName: string | null;
   role: string;
+  companyId: string;
   companyName: string;
   planStatus: string;
   trialEndsAt: string | null;
   isWritable: boolean;
   trialDaysLeft: number | null;
+  primaryColor: string | null;
+  accentColor: string | null;
+  logoUrl: string | null;
 };
 
 type ProfileRow = {
+  company_id: string;
   full_name: string | null;
   role: string;
   email: string | null;
-  companies: { name: string; plan_status: string; trial_ends_at: string | null } | null;
+  companies: {
+    name: string;
+    plan_status: string;
+    trial_ends_at: string | null;
+    primary_color: string | null;
+    accent_color: string | null;
+    logo_url: string | null;
+  } | null;
 };
 
 function computeIsWritable(planStatus: string, trialEndsAt: string | null, now: Date): boolean {
@@ -48,7 +60,9 @@ export async function getUserContext(): Promise<UserContext | null> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role, email, companies(name, plan_status, trial_ends_at)")
+    .select(
+      "company_id, full_name, role, email, companies(name, plan_status, trial_ends_at, primary_color, accent_color, logo_url)",
+    )
     .eq("id", user.id)
     .maybeSingle<ProfileRow>();
 
@@ -63,10 +77,14 @@ export async function getUserContext(): Promise<UserContext | null> {
     email: profile.email ?? user.email ?? "",
     fullName: profile.full_name,
     role: profile.role,
+    companyId: profile.company_id,
     companyName: profile.companies?.name ?? "",
     planStatus,
     trialEndsAt,
     isWritable: computeIsWritable(planStatus, trialEndsAt, now),
     trialDaysLeft: computeTrialDaysLeft(trialEndsAt, now),
+    primaryColor: profile.companies?.primary_color ?? null,
+    accentColor: profile.companies?.accent_color ?? null,
+    logoUrl: profile.companies?.logo_url ?? null,
   };
 }

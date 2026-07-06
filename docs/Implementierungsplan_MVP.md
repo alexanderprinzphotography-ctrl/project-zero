@@ -1,69 +1,90 @@
 # Implementierungsplan — MVP „Baustellen-Zentrale"
 
-> Begleitdokument zum Projektkontext. Jeder Meilenstein wird in einen oder mehrere Claude-Code-Prompts übersetzt. Kritische Meilensteine (1, 6, 9) haben einen Review-Checkpoint, den der Projektinhaber (Fachinformatiker AE) manuell prüft.
+> Begleitdokument zum Projektkontext. Jeder Meilenstein wird in einen oder mehrere Claude-Code-Prompts übersetzt. Die Review-Checkpoints (MS 1a, MS 1b, MS 6, MS 8, MS 9) werden vom Projektinhaber (Fachinformatiker AE) manuell geprüft.
 
 ## Arbeitsweise
 
 - **Ein Schritt = ein abgegrenztes, testbares Feature.** Vor jedem Schritt kurzes Sparring, dann der Claude-Code-Prompt.
 - **RLS-first:** Jede neue Tabelle mit Firmenbezug bekommt im selben Schritt ihre Row-Level-Security-Policy. Kein Feature sieht echte Daten, bevor die Mandantentrennung steht.
-- **Review-Checkpoints:** An sicherheits- oder rechtsrelevanten Stellen wird der generierte Code bewusst gelesen, bevor weitergebaut wird.
-- **Reihenfolge:** MS 0–3 sind Fundament und laufen strikt der Reihe nach. Ab MS 4 sind CRM/Projekte/Tagebuch/Zeit/Planung inhaltlich koppelbar, aber die hier gewählte Reihenfolge minimiert Nacharbeit.
+- **Review-Checkpoints:** An sicherheits-, geld- oder rechtsrelevanten Stellen wird der generierte Code bewusst gelesen, bevor weitergebaut wird.
+- **Reihenfolge:** MS 0 bis MS 3 sind Fundament und laufen strikt der Reihe nach. Ab MS 4 sind CRM/Projekte/Tagebuch/Zeit/Planung inhaltlich koppelbar, aber die hier gewählte Reihenfolge minimiert Nacharbeit.
 
 ## Querschnitts-Konventionen
 
 - **Sprache/Stack:** TypeScript strict, Next.js App Router, React Server Components wo sinnvoll, Supabase-Client server- und clientseitig sauber getrennt.
-- **Projektstruktur:** Feature-orientierte Ordner (`/core/...` für branchenagnostische Bausteine, `/modules/handwerk/...` für Branchenspezifisches). Diese Trennung ab Tag 1, damit der spätere Core-Extract ein Refactoring bleibt, kein Neuschreiben.
+- **Projektstruktur:** Feature-orientierte Ordner (`src/core/...` für branchenagnostische Bausteine, `src/modules/handwerk/...` für Branchenspezifisches). Diese Trennung ab Tag 1, damit der spätere Core-Extract ein Refactoring bleibt, kein Neuschreiben.
+- **Migrationen:** als versionierte SQL-Dateien im Repo (nicht nur im Supabase-Studio klicken) — reproduzierbar und reviewbar.
+- **Mandantentrennung:** Zugriff auf die eigene Firma über die `SECURITY DEFINER`-Funktion `current_company_id()`; keine rekursiven RLS-Policies.
+- **Nur-Lese-/Abo-Sperre:** Schreib-Policies (INSERT/UPDATE/DELETE) auf Geschäftsdaten enthalten immer `company_is_writable()`; SELECT nicht. Nach Trial-Ablauf gilt firmenweit Nur-Lese-Zugriff, auf DB-Ebene erzwungen. Gilt für **jede** künftige Feature-Tabelle.
+- **Rollen:** `admin` (Firmen-Owner, volle Verwaltung), `projektleiter` (Projekte/Team), `mitarbeiter` (operativ).
 - **Feature-Flags / Entitlements:** simple Flag-Tabelle pro Firma vorbereiten (welche Module aktiv sind), auch wenn im MVP nur „Handwerk" existiert.
 - **Umgebung:** Supabase & Vercel in EU-Region. Secrets über Env-Variablen, nie im Repo.
 - **Tests:** kritische Pfade (Auth, Mandantentrennung, Geldbeträge, Tagebuch-Unveränderlichkeit) mit automatisierten Tests; Rest pragmatisch.
-- **Responsive:** Desktop & Tablet als primäre Ziel-Viewports; Layouts von Anfang an fluid.
+- **Responsive:** Desktop & Tablet als primäre Ziel-Viewports; Layouts von Anfang an fluid. Handy-Feinschliff/PWA später.
 
 ---
 
-## MS 0 — Setup & Fundament
+## MS 0 — Setup & Fundament  ✅
 
 **Ziel:** Ein deploybares, leeres Gerüst, das schon in der Cloud läuft.
 
 **Umfang**
 - Next.js (App Router, TS) initialisiert, Tailwind + shadcn/ui eingerichtet, Framer Motion installiert.
 - Supabase-Projekt (EU) angebunden; server-/client-seitige Clients konfiguriert.
-- Basis-Layout (Shell mit Platzhalter-Navigation), ein Theme-Grundgerüst über CSS-Variablen.
+- Basis-Layout (Shell mit Platzhalter-Navigation), Theme-Grundgerüst über CSS-Variablen.
 - Deploy-Pipeline auf Vercel (EU); erste Live-URL.
-- Ordnerstruktur `/core` und `/modules/handwerk` angelegt.
+- Ordnerstruktur `src/core` und `src/modules/handwerk` angelegt.
 
-**Fertig, wenn:** eine geschützte Platzhalter-Seite in der Cloud erreichbar ist und der Build sauber durchläuft.
-
----
-
-## MS 1 — Auth & Multi-Tenancy  · 🔍 Review-Checkpoint
-
-**Ziel:** Sicheres Login und wasserdichte Datentrennung zwischen Firmen.
-
-**Umfang**
-- Supabase Auth (E-Mail/Passwort) mit Login/Logout/Passwort-Reset.
-- Datenmodell: `companies` (Tenants), `profiles` (verknüpft mit auth-User, `company_id`, `role`), Rollen `admin` / `mitarbeiter`.
-- Einladungs-Flow: Admin lädt Mitarbeiter per E-Mail in die eigene Firma ein.
-- **RLS-Policies** auf allen Tenant-Tabellen: ein Nutzer sieht ausschließlich Daten seiner `company_id`.
-- Rollenbasierte Sichtbarkeit im UI (Admin sieht Verwaltung, Mitarbeiter nicht).
-
-**Daten-/Sicherheitshinweise:** Das ist das Fundament. RLS wird auf DB-Ebene erzwungen, nicht im App-Code.
-
-**Review-Checkpoint:** RLS-Policies und Einladungs-Flow manuell prüfen — gezielt testen, dass Firma A niemals Daten von Firma B laden kann (auch nicht über manipulierte Requests).
-
-**Fertig, wenn:** zwei Testfirmen parallel existieren und nachweislich keine Datenüberschneidung möglich ist.
+**Fertig, wenn:** eine öffentliche Platzhalter-Seite in der Cloud erreichbar ist und der Build sauber durchläuft. (Zugriffsschutz kommt mit der Auth in MS 1.)
 
 ---
 
-## MS 2 — Theming / Corporate Design
+## MS 1a — Auth, Firmen & Rollen  · 🔍 Review-Checkpoint  ✅
 
-**Ziel:** Jede Firma passt Oberfläche an ihr Corporate Design an.
+**Ziel:** Sicheres Login und wasserdichte Datentrennung; Self-Service-Registrierung mit 14-Tage-Trial.
 
 **Umfang**
-- Einstellungs-Seite (Admin): Logo-Upload (Supabase Storage), Primär-/Akzentfarben.
-- Theming über CSS-Variablen, die pro Firma gesetzt werden; shadcn-Komponenten übernehmen die Werte.
-- Live-Vorschau der Änderungen.
+- Supabase Auth (E-Mail/Passwort): Login, Logout, Passwort-Reset; SSR-Session via `@supabase/ssr` + Middleware.
+- `companies` (u. a. `plan_status`, `trial_ends_at`), `profiles` (`company_id`, `role` aus admin/projektleiter/mitarbeiter).
+- Self-Service-Registrierung: neue Firma startet im Trial (`trial_ends_at = now() + 14 Tage`), der Registrierende wird `admin` — atomar über eine `SECURITY DEFINER`-Funktion.
+- RLS auf `companies`/`profiles` über `current_company_id()`; keine rekursiven Policies.
 
-**Fertig, wenn:** zwei Firmen sichtbar unterschiedliche Farben/Logo haben, ohne Code-Änderung.
+**Review-Checkpoint:** Cross-Tenant-Test (Firma A sieht nie Firma B), atomare Registrierung (kein Nutzer ohne Firma/Profil), keine rekursive RLS.
+
+**Fertig, wenn:** zwei Firmen sich unabhängig registrieren und nachweislich keine Datenüberschneidung möglich ist.
+
+---
+
+## MS 1b — Einladungen, Rollen-UI & Trial-Lifecycle  · 🔍 Review-Checkpoint  ✅
+
+**Ziel:** Team hereinholen, rollenbasierte Sichtbarkeit, Nur-Lese-Zugriff nach Trial-Ablauf.
+
+**Umfang**
+- `invitations`-Tabelle (`token`, `role`, `max_uses` [1 = Single-Use, NULL = Team-Link], `expires_at`, `used_count`, `revoked_at`); nur `admin` erstellt/verwaltet.
+- **Kopierbarer Einladungslink** (`/einladung/<token>`) — Rolle und Typ (Single-Use oder Team-Link) beim Erstellen wählbar.
+- Accept-Flow: eingeladene Person tritt der bestehenden Firma mit der Einladungs-Rolle bei (KEINE neue Firma), atomar über `accept_invitation()`. Ein Nutzer = eine Firma.
+- Trial-Lifecycle: `company_is_writable()`; nach Ablauf firmenweit Nur-Lese auf DB-Ebene. Trial-Banner, „abgelaufen"-Zustand mit Platzhalter-Upgrade-Seite (`/konto/upgrade`).
+- Rollenbasierte Sichtbarkeit; einfache Mitgliederliste.
+
+**Review-Checkpoint:** Accept-Flow gegen Missbrauch (abgelaufener/widerrufener/aufgebrauchter Token, fremde Firma, bereits zugehöriger Nutzer); Nur-Lese-Sperre auf DB-Ebene (nicht nur UI); nur `admin` kann einladen.
+
+**Fertig, wenn:** Einladungen greifen (beide Typen), Missbrauchsfälle werden abgewiesen, und nach simuliertem Trial-Ablauf sind Schreibvorgänge DB-seitig gesperrt, Lesen bleibt möglich.
+
+---
+
+## MS 2 — Theming / Corporate Design  ⏳ (in Arbeit)
+
+**Ziel:** Jede Firma passt die Oberfläche an ihr Corporate Design an; jeder Nutzer wählt Hell/Dunkel.
+
+**Umfang**
+- Einstellungsseite (nur Admin): Logo-Upload (Supabase Storage), Primär- und Akzentfarbe, mit Live-Vorschau.
+- Theming über CSS-Variablen pro Firma (shadcn-Komponenten übernehmen die Werte); Kontrast-Sicherheit für Button-Text.
+- Dark Mode als persönliche Einstellung pro Nutzer (light/dark/system); Markenfarben bleiben in beiden Modi. SSR ohne Flash.
+- Theme-Bearbeitung respektiert `company_is_writable()`.
+
+**Hinweis:** Der KI-Brand-Import (Website/CI-PDF → Theme-Vorschlag) baut auf dieser Mechanik auf und ist als Premium-Feature in die KI-Phase verschoben (siehe Roadmap).
+
+**Fertig, wenn:** zwei Firmen sichtbar unterschiedlich aussehen (Logo/Farben), Hell/Dunkel funktioniert und nichts umflackert.
 
 ---
 
@@ -72,7 +93,7 @@
 **Ziel:** Kundenstamm, an dem später Projekte hängen.
 
 **Umfang**
-- Tabelle `contacts` (`company_id`, Firmenname/Person, Kontaktdaten, Notizen) + RLS.
+- Tabelle `contacts` (`company_id`, Firmenname/Person, Kontaktdaten, Notizen) + RLS (inkl. `company_is_writable()` auf Schreibpfaden).
 - CRUD-Oberfläche: Liste (such-/filterbar), Detailansicht, Anlegen/Bearbeiten.
 
 **Fertig, wenn:** Kunden angelegt, gefunden und bearbeitet werden können, sauber mandantengetrennt.
@@ -100,7 +121,7 @@
 **Ziel:** Foto- und Textdokumentation, unveränderlich und zeitgestempelt.
 
 **Umfang**
-- Tabelle `diary_entries` (`project_id`, `author_id`, `created_at`, Text) — **append-only**: keine Updates/Deletes auf Einträge (per RLS/Policy erzwungen).
+- Tabelle `diary_entries` (`project_id`, `author_id`, `created_at`, Text) — **append-only**: keine Updates/Deletes (per RLS/Policy erzwungen).
 - Foto-Upload in Supabase Storage, Verknüpfung zum Eintrag; Aufnahme-/Upload-Zeitpunkt festgehalten.
 - Chronologische Tagebuch-Ansicht pro Projekt, tablet-tauglich.
 
@@ -157,7 +178,25 @@
 
 ---
 
-## MS 9 — Politur & Responsive-Feinschliff
+## MS 9 — Billing & Abo (Stripe)  · 🔍 Review-Checkpoint
+
+**Ziel:** Aus dem Trial wird ein zahlender Kunde — der Weg aus dem Nur-Lese-Zustand.
+
+**Umfang**
+- Stripe-Anbindung: Checkout für den Abo-Abschluss, Customer Portal für Verwaltung/Kündigung.
+- Webhooks halten `plan_status`/`trial_ends_at` der Firma synchron (z. B. `trial` → `active` nach erfolgreicher Zahlung; bei Kündigung/Zahlungsausfall entsprechend zurück).
+- Die Platzhalter-Upgrade-Seite aus MS 1b wird zur echten Abo-Seite; nach aktivem Abo fällt die Nur-Lese-Sperre.
+- Grundlage für später zubuchbare Premium-Module (Entitlements).
+
+**Daten-/Sicherheitshinweise:** Geld-relevant. Webhook-Signaturen prüfen; Abo-Status niemals allein aus dem Client übernehmen, sondern serverseitig über Webhooks/Stripe verifizieren.
+
+**Review-Checkpoint:** Abo-Statuswechsel und Webhook-Verarbeitung testen; sicherstellen, dass sich der `plan_status` nicht clientseitig manipulieren lässt.
+
+**Fertig, wenn:** eine Firma ein Abo abschließen kann, `plan_status` serverseitig korrekt auf `active` wechselt und die Nur-Lese-Sperre aufgehoben wird.
+
+---
+
+## MS 10 — Politur & Responsive-Feinschliff
 
 **Ziel:** Aus „funktioniert" wird „fühlt sich hochwertig an".
 
@@ -172,4 +211,12 @@
 
 ## Nach dem MVP (nicht Teil dieses Plans)
 
-Rechnungen/E-Rechnung/DATEV via lexoffice/sevDesk · Materialbedarfs-Rechner · Kundenportal · KI-Marketing (Premium) · Automations-Builder · CRM-Integrationen · Handy-/PWA-/Offline-Ausbau · weitere Branchenmodule (z. B. Makler).
+- Rechnungen/E-Rechnung/DATEV via lexoffice/sevDesk (Fach-API andocken).
+- **KI-Brand-Import (Premium):** Website-URL oder CI-PDF → KI schlägt Logo + Primär-/Akzentfarbe vor → Admin bestätigt in der MS-2-Vorschau. Nutzt Claude (Vision/PDF), optional zusätzlich eine Brand-API.
+- Materialbedarfs-Rechner.
+- Kundenportal (Kunde sieht/akzeptiert Angebot, sieht Projektfortschritt).
+- KI-Marketing / Anzeigen-Analyse & -Optimierung (Premium).
+- Natürlichsprachiger Automations-Builder.
+- CRM-Integrationen (HubSpot/Pipedrive).
+- Handy-/PWA-/Offline-Ausbau.
+- Weitere Branchenmodule (z. B. Makler).
