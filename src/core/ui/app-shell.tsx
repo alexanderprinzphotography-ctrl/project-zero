@@ -1,26 +1,58 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { signOut } from "@/core/auth/actions";
+import type { UserContext } from "@/core/auth/get-user-context";
 
 /**
  * Grundgerüst der App: Header mit Platzhalter-Logo, leere Seitennavigation, Content-Bereich.
  * Branchenagnostisch — branchenspezifische Navigation kommt später aus modules/handwerk.
  */
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  userContext,
+}: {
+  children: ReactNode;
+  userContext: UserContext | null;
+}) {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="flex h-16 shrink-0 items-center border-b border-border px-6">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-border px-6">
         <div className="flex items-center gap-2 text-lg font-semibold">
           <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-sm text-primary-foreground">
             BZ
           </span>
           <span>Baustellen-Zentrale</span>
         </div>
+        {userContext ? (
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-muted-foreground">
+              {userContext.companyName} · {userContext.fullName ?? userContext.email} (
+              {userContext.role})
+            </span>
+            <form action={signOut}>
+              <Button type="submit" variant="outline" size="sm">
+                Abmelden
+              </Button>
+            </form>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 text-sm">
+            <Link href="/login" className="text-muted-foreground hover:text-foreground">
+              Anmelden
+            </Link>
+            <Link href="/registrieren">
+              <Button size="sm">Registrieren</Button>
+            </Link>
+          </div>
+        )}
       </header>
       <div className="flex flex-1">
         <aside
           aria-label="Seitennavigation"
           className="hidden w-56 shrink-0 border-r border-border p-4 md:block"
         >
-          {/* Navigation folgt mit Auth & Rollen in MS 1 */}
+          {/* Navigation folgt mit Rollen-/Modul-Logik in einem späteren Meilenstein */}
         </aside>
         <main className="flex-1 p-6">{children}</main>
       </div>

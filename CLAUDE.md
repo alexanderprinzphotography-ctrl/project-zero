@@ -32,4 +32,6 @@ Ausführlicher Kontext in `docs/Projektkontext.md`, Fahrplan in `docs/Implementi
 ## Commands
 - Dev-Server: `npm run dev`
 - Build: `npm run build`
-- Test/Lint: _(hier ergänzen, sobald in MS 0 eingerichtet)_
+- Lint: `npm run lint`
+- Typecheck: `npm run typecheck`   (Script erst ergänzen – siehe unten)
+- Tests: `npm run test` (Vitest; RLS-Integrationstests in `tests/integration` erfordern `SUPABASE_SERVICE_ROLE_KEY` und werden sonst übersprungen)
