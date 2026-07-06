@@ -7,10 +7,12 @@ import { getUserContext } from "@/core/auth/get-user-context";
 import { contactDisplayName, type ContactType } from "@/core/crm/contact";
 import { projectStatusLabel, type Project } from "@/core/projects/project";
 import { handwerkProjectFields } from "@/modules/handwerk/project-fields";
+import type { DiaryCategory, DiaryEntry } from "@/core/diary/entry";
 import { ArchiveToggleButton } from "./archive-toggle-button";
 import { StatusChanger } from "./status-changer";
 import { AddMemberForm, type AssignableUser } from "./add-member-form";
 import { RemoveMemberButton } from "./remove-member-button";
+import { DiarySection } from "./diary-section";
 
 function Field({ label, value }: { label: string; value: string | null }) {
   if (!value) return null;
@@ -42,6 +44,17 @@ type MemberRow = {
   user_id: string;
   assigned_at: string;
   profiles: { full_name: string | null; email: string | null } | null;
+};
+
+type DiaryEntryRow = {
+  id: string;
+  seq: number;
+  created_at: string;
+  category: DiaryCategory | null;
+  text: string | null;
+  corrects_entry_id: string | null;
+  profiles: { full_name: string | null; email: string | null } | null;
+  diary_photos: { id: string; storage_path: string }[];
 };
 
 export default async function ProjektDetailPage({
@@ -83,6 +96,45 @@ export default async function ProjektDetailPage({
     const assignedIds = new Set(members.map((m) => m.user_id));
     availableUsers = (allProfiles ?? []).filter((p) => !assignedIds.has(p.id));
   }
+
+  // diary_entries -> profiles hat nur EINEN Fremdschluessel (author_id), also
+  // hier keine Mehrdeutigkeit wie bei project_members (siehe dort).
+  const { data: diaryRows } = await supabase
+    .from("diary_entries")
+    .select(
+      "id, seq, created_at, category, text, corrects_entry_id, profiles(full_name, email), diary_photos(id, storage_path)",
+    )
+    .eq("project_id", id)
+    .order("seq", { ascending: false });
+  const diaryEntryRows = (diaryRows as unknown as DiaryEntryRow[] | null) ?? [];
+
+  const allPhotoPaths = diaryEntryRows.flatMap((r) => r.diary_photos.map((p) => p.storage_path));
+  const signedUrlMap = new Map<string, string>();
+  if (allPhotoPaths.length > 0) {
+    const { data: signedUrls } = await supabase.storage
+      .from("diary-photos")
+      .createSignedUrls(allPhotoPaths, 3600);
+    (signedUrls ?? []).forEach((s, i) => {
+      if (s.signedUrl) signedUrlMap.set(allPhotoPaths[i], s.signedUrl);
+    });
+  }
+
+  const diaryEntries: DiaryEntry[] = diaryEntryRows.map((row) => ({
+    id: row.id,
+    seq: row.seq,
+    created_at: row.created_at,
+    category: row.category,
+    text: row.text,
+    corrects_entry_id: row.corrects_entry_id,
+    authorName: row.profiles?.full_name || row.profiles?.email || "Unbekannt",
+    photos: row.diary_photos.map((p) => ({
+      id: p.id,
+      storage_path: p.storage_path,
+      signedUrl: signedUrlMap.get(p.storage_path) ?? null,
+    })),
+  }));
+
+  const canVerifyDiary = ["admin", "projektleiter"].includes(context.role);
 
   const address = [
     project.site_street,
@@ -180,9 +232,21 @@ export default async function ProjektDetailPage({
         </CardContent>
       </Card>
 
+      <Card className="max-w-3xl">
+        <CardContent>
+          <DiarySection
+            projectId={project.id}
+            entries={diaryEntries}
+            canWrite
+            isWritable={context.isWritable}
+            canVerify={canVerifyDiary}
+          />
+        </CardContent>
+      </Card>
+
       <Card className="max-w-xl">
         <CardHeader>
-          <CardTitle>Tagebuch, Zeiterfassung &amp; Angebote</CardTitle>
+          <CardTitle>Zeiterfassung &amp; Angebote</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           Kommt in späteren Meilensteinen.
