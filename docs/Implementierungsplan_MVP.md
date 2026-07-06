@@ -217,6 +217,6 @@
 - Kundenportal (Kunde sieht/akzeptiert Angebot, sieht Projektfortschritt).
 - KI-Marketing / Anzeigen-Analyse & -Optimierung (Premium).
 - Natürlichsprachiger Automations-Builder.
-- CRM-Integrationen (HubSpot/Pipedrive).
+- - Kunden-Import & CRM-Integrationen (Premium): CSV-Import (universell, jedes Quellsystem) sowie API-Connectoren zu HubSpot/Pipedrive (Sync in die App-Kontakte). Das eigene CRM bleibt der Unterbau, die Integration füttert es.
 - Handy-/PWA-/Offline-Ausbau.
 - Weitere Branchenmodule (z. B. Makler).

@@ -71,14 +71,22 @@ export function AppShell({
           aria-label="Seitennavigation"
           className="hidden w-56 shrink-0 border-r border-border p-4 md:block"
         >
-          {userContext && userContext.role !== "mitarbeiter" && (
+          {userContext && (
             <nav className="flex flex-col gap-1 text-sm">
               <Link
-                href="/team"
+                href="/kunden"
                 className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
               >
-                Team
+                Kunden
               </Link>
+              {userContext.role !== "mitarbeiter" && (
+                <Link
+                  href="/team"
+                  className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                >
+                  Team
+                </Link>
+              )}
               {userContext.role === "admin" && (
                 <Link
                   href="/einstellungen"

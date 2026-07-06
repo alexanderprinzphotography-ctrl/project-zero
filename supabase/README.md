@@ -12,6 +12,7 @@ Migrationen manuell im Supabase-Dashboard ausführen, in aufsteigender Dateireih
 | `20260706095904_ms1a_auth_companies_profiles.sql` | `companies`/`profiles`, RLS, `current_company_id()`, `current_user_role()`, `register_company()` |
 | `20260706113116_ms1b_invitations_trial_lifecycle.sql` | `invitations` (admin-only RLS), `company_is_writable()` (Trial-Sperre), `get_invitation_preview()`, `accept_invitation()` |
 | `20260706125044_ms2_theming_corporate_design.sql` | `companies.primary_color`/`accent_color`/`logo_url`, Storage-Bucket `logos` (öffentlich lesbar, admin-only Schreiben), Theme-Sperre bei abgelaufenem Trial, `get_invitation_preview()` um Farben/Logo erweitert |
+| `20260706180035_ms3_crm_contacts.sql` | `contacts` (RLS: lesen alle Rollen, schreiben nur admin/projektleiter + Trial-Sperre), `company_counters` + `next_customer_number()` für race-sichere, pro Firma fortlaufende Kundennummer |
 
 Spätere Migrationen kommen als weitere, zeitlich aufsteigend benannte `.sql`-Dateien in
 denselben Ordner und werden nach demselben Muster eingespielt.
