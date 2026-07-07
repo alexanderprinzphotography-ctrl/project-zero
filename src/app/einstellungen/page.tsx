@@ -4,6 +4,7 @@ import { DEFAULT_ACCENT_COLOR, DEFAULT_PRIMARY_COLOR } from "@/core/theme/defaul
 import { ThemeSettingsForm } from "./theme-settings-form";
 import { ProjectVisibilityForm } from "./project-visibility-form";
 import { ScheduleVisibilityForm } from "./schedule-visibility-form";
+import { AutoReleaseForm } from "./auto-release-form";
 
 export default async function EinstellungenPage() {
   const context = await getUserContext();
@@ -36,6 +37,14 @@ export default async function EinstellungenPage() {
         <h2 className="text-xl font-semibold tracking-tight">Planungs-Sichtbarkeit</h2>
         <ScheduleVisibilityForm
           initialValue={context.scheduleVisibility}
+          readOnly={!context.isWritable}
+        />
+      </div>
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold tracking-tight">Angebote – Auto-Freigabe</h2>
+        <AutoReleaseForm
+          initialEnabled={context.autoReleaseEnabled}
+          initialLimitCents={context.autoReleaseLimitCents}
           readOnly={!context.isWritable}
         />
       </div>

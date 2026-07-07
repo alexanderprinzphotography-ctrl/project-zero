@@ -18,6 +18,7 @@ Migrationen manuell im Supabase-Dashboard ausführen, in aufsteigender Dateireih
 | `20260706225041_ms6_time_entries.sql` | `time_entries` (Timer + manuell, exakte Dauer aus Zeitstempeln, DST-sicher), Partial-Unique-Index für max. einen laufenden Timer pro Nutzer, RLS (eigene Einträge + admin/PL alle) |
 | `20260706232608_ms7_schedule_entries.sql` | `schedule_entries` (Einsatz/Abwesenheit, ganztags/halbtags/Uhrzeit), `companies.schedule_visibility`, `company_schedule_visibility()`, Cross-Company-Validierung, RLS (nur admin/PL schreiben, Sichtbarkeit nach Einstellung) |
 | `20260707074127_ms8a_catalog_items.sql` | `catalog_items` (Leistungskatalog, Preise als Ganzzahl-Cent), optionale fortlaufende Artikelnummer über `next_counter_value()`, RLS (nur admin/PL lesen/schreiben, kein Hard-Delete) |
+| `20260707115539_ms8b_quotes.sql` | `quotes`/`quote_items` (Angebote, Positionen als Preis-Snapshot vom Katalog), `companies.auto_release_*`, `reorder_quote_items()` (atomares Umsortieren), Cross-Company-Validierung, RLS (admin/PL, SELECT ohne Trial-Sperre) |
 
 Spätere Migrationen kommen als weitere, zeitlich aufsteigend benannte `.sql`-Dateien in
 denselben Ordner und werden nach demselben Muster eingespielt.

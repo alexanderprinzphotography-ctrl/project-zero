@@ -107,6 +107,14 @@ export function AppShell({
               )}
               {userContext.role !== "mitarbeiter" && (
                 <Link
+                  href="/angebote"
+                  className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                >
+                  Angebote
+                </Link>
+              )}
+              {userContext.role !== "mitarbeiter" && (
+                <Link
                   href="/leistungskatalog"
                   className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
                 >

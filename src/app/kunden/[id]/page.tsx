@@ -6,6 +6,7 @@ import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { contactDisplayName, contactTypeLabel, type Contact } from "@/core/crm/contact";
 import { ArchiveToggleButton } from "./archive-toggle-button";
+import { QuoteListSection } from "@/app/angebote/quote-list-section";
 
 function Field({ label, value }: { label: string; value: string | null }) {
   if (!value) return null;
@@ -96,6 +97,18 @@ export default async function KundeDetailPage({
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           Projekte werden in einem späteren Meilenstein mit Kunden verknüpft.
+        </CardContent>
+      </Card>
+
+      <Card className="max-w-xl">
+        <CardHeader>
+          <CardTitle>Angebote</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <QuoteListSection
+            customerId={contact.id}
+            canView={["admin", "projektleiter"].includes(context.role)}
+          />
         </CardContent>
       </Card>
     </div>

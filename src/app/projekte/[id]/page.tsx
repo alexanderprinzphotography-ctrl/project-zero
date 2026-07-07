@@ -17,6 +17,7 @@ import { DiarySection } from "./diary-section";
 import { TimerControl } from "@/app/zeiten/timer-control";
 import { TimeEntryList } from "@/app/zeiten/time-entry-list";
 import type { DisplayTimeEntry } from "@/app/zeiten/time-entry-row";
+import { QuoteListSection } from "@/app/angebote/quote-list-section";
 
 function Field({ label, value }: { label: string; value: string | null }) {
   if (!value) return null;
@@ -335,8 +336,8 @@ export default async function ProjektDetailPage({
         <CardHeader>
           <CardTitle>Angebote</CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          Kommt in späteren Meilensteinen.
+        <CardContent>
+          <QuoteListSection projectId={project.id} canView={canWrite} />
         </CardContent>
       </Card>
     </div>

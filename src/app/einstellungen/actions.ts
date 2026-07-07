@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
+import { parseEuroInputToCents } from "@/core/money/cents";
 
 export type ThemeActionState = { error: string | null; success: boolean };
 
@@ -151,6 +152,43 @@ export async function updateScheduleVisibility(
 
   revalidatePath("/", "layout");
   revalidatePath("/einsatzplanung");
+  return { error: null, success: true };
+}
+
+export async function updateAutoReleaseSettings(
+  _prevState: ThemeActionState,
+  formData: FormData,
+): Promise<ThemeActionState> {
+  const context = await getUserContext();
+  if (!context || context.role !== "admin") {
+    return { error: "Nur Admins können die Auto-Freigabe ändern.", success: false };
+  }
+  if (!context.isWritable) {
+    return { error: "Testphase abgelaufen – Einstellungen sind gesperrt.", success: false };
+  }
+
+  const enabled = formData.get("autoReleaseEnabled") === "true";
+  const limitInput = String(formData.get("autoReleaseLimitEuro") ?? "0").trim();
+  const limitCents = parseEuroInputToCents(limitInput || "0");
+  if (limitCents === null) {
+    return { error: "Bitte einen gültigen Betrag angeben (z. B. 500,00).", success: false };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("companies")
+    .update({ auto_release_enabled: enabled, auto_release_limit_cents: limitCents })
+    .eq("id", context.companyId);
+
+  if (error) {
+    if (readonlyErrorMessage(error.message)) {
+      return { error: "Testphase abgelaufen – Einstellungen sind gesperrt.", success: false };
+    }
+    return { error: "Einstellung konnte nicht gespeichert werden.", success: false };
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/angebote");
   return { error: null, success: true };
 }
 
