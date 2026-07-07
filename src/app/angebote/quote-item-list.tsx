@@ -79,14 +79,20 @@ export function QuoteItemList({
             className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3 text-sm"
           >
             <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-muted-foreground">Pos. {item.position}</span>
                 <span className="font-medium">{item.name}</span>
+                {item.is_ai_suggested && (
+                  <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-xs text-violet-700 dark:text-violet-400">
+                    KI-Vorschlag · Menge geschätzt
+                  </span>
+                )}
               </div>
               <span className="text-muted-foreground">
                 {hundredthsToQuantityInputValue(decimalNumberToHundredths(Number(item.quantity)))} {item.unit} ×{" "}
                 {formatCentsAsEuro(item.unit_price_net_cents)}
               </span>
+              {item.ai_note && <span className="text-xs text-muted-foreground italic">{item.ai_note}</span>}
             </div>
             <div className="flex items-center gap-3">
               <span className="font-medium">{formatCentsAsEuro(item.line_total_net_cents)}</span>

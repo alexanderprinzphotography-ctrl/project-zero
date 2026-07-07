@@ -62,11 +62,18 @@ export async function QuoteListSection({
           </Link>
         ))
       )}
-      <Link href={`/angebote/neu?${params.toString()}`}>
-        <Button type="button" variant="outline" size="sm" className="w-fit">
-          + Neues Angebot
-        </Button>
-      </Link>
+      <div className="flex gap-2">
+        <Link href={`/angebote/neu?${params.toString()}`}>
+          <Button type="button" variant="outline" size="sm" className="w-fit">
+            + Neues Angebot
+          </Button>
+        </Link>
+        <Link href={`/angebote/ki-entwurf?${params.toString()}`}>
+          <Button type="button" variant="outline" size="sm" className="w-fit">
+            Angebot mit KI erstellen
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }

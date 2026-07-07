@@ -27,7 +27,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   const { data: itemRows } = await supabase
     .from("quote_items")
-    .select("id, quote_id, position, catalog_item_id, name, unit, quantity, unit_price_net_cents, line_total_net_cents")
+    .select(
+      "id, quote_id, position, catalog_item_id, name, unit, quantity, unit_price_net_cents, line_total_net_cents, is_ai_suggested, ai_note",
+    )
     .eq("quote_id", id)
     .order("position", { ascending: true });
 

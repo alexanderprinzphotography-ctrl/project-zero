@@ -50,7 +50,9 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
 
   const { data: itemRows } = await supabase
     .from("quote_items")
-    .select("id, quote_id, position, catalog_item_id, name, unit, quantity, unit_price_net_cents, line_total_net_cents")
+    .select(
+      "id, quote_id, position, catalog_item_id, name, unit, quantity, unit_price_net_cents, line_total_net_cents, is_ai_suggested, ai_note",
+    )
     .eq("quote_id", id)
     .order("position", { ascending: true });
   const items = (itemRows as QuoteItem[] | null) ?? [];
@@ -75,6 +77,11 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {quote.is_ai_generated && (
+            <span className="rounded-full bg-violet-500/15 px-3 py-1 text-xs text-violet-700 dark:text-violet-400">
+              Entwurf mit KI erstellt
+            </span>
+          )}
           <span className={`rounded-full px-3 py-1 text-xs ${quoteStatusBadgeClass(quote.status)}`}>
             {quoteStatusLabel(quote.status)}
           </span>
@@ -155,6 +162,48 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
           </div>
         </CardContent>
       </Card>
+
+      {quote.unmatched_items && quote.unmatched_items.length > 0 && (
+        <Card className="max-w-3xl border-amber-500/40">
+          <CardHeader>
+            <CardTitle>Nicht zugeordnete Arbeiten</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-sm">
+            <p className="text-muted-foreground">
+              Diese aus der Beschreibung erkannten Arbeiten hatten keine passende Katalog-Position und wurden
+              NICHT automatisch mit Preis angelegt. Bitte bei Bedarf manuell als Position ergänzen.
+            </p>
+            {quote.unmatched_items.map((u, i) => (
+              <div key={i} className="rounded-md bg-amber-500/10 px-3 py-2">
+                <p className="font-medium">{u.beschreibung}</p>
+                {u.hinweis && <p className="text-xs text-muted-foreground">{u.hinweis}</p>}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {quote.is_ai_generated && quote.intake_description && (
+        <Card className="max-w-3xl">
+          <CardHeader>
+            <CardTitle>Vor-Ort-Aufnahme (Grundlage des KI-Entwurfs)</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 text-sm">
+            <p className="whitespace-pre-wrap">{quote.intake_description}</p>
+            {quote.intake_rooms && quote.intake_rooms.length > 0 && (
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-muted-foreground">Räume/Maße</span>
+                {quote.intake_rooms.map((r, i) => (
+                  <p key={i} className="text-muted-foreground">
+                    {r.name}: {r.length} m × {r.width} m × {r.height} m, Anzahl {r.count} (Fläche je Raum{" "}
+                    {r.areaM2} m²)
+                  </p>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

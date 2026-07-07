@@ -23,6 +23,10 @@ export type Quote = {
   created_by: string;
   approved_by: string | null;
   approved_at: string | null;
+  is_ai_generated: boolean;
+  intake_description: string | null;
+  intake_rooms: QuoteIntakeRoom[] | null;
+  unmatched_items: QuoteUnmatchedItem[] | null;
 };
 
 export type QuoteItem = {
@@ -35,7 +39,20 @@ export type QuoteItem = {
   quantity: number;
   unit_price_net_cents: number;
   line_total_net_cents: number;
+  is_ai_suggested: boolean;
+  ai_note: string | null;
 };
+
+export type QuoteIntakeRoom = {
+  name: string;
+  length: number;
+  width: number;
+  height: number;
+  count: number;
+  areaM2: number;
+};
+
+export type QuoteUnmatchedItem = { beschreibung: string; hinweis?: string };
 
 export function quoteStatusLabel(status: QuoteStatus): string {
   switch (status) {
