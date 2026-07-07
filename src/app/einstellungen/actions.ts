@@ -113,6 +113,47 @@ export async function updateProjectVisibility(
   return { error: null, success: true };
 }
 
+export async function updateScheduleVisibility(
+  _prevState: ThemeActionState,
+  formData: FormData,
+): Promise<ThemeActionState> {
+  const context = await getUserContext();
+  if (!context || context.role !== "admin") {
+    return { error: "Nur Admins können die Planungs-Sichtbarkeit ändern.", success: false };
+  }
+  if (!context.isWritable) {
+    return {
+      error: "Testphase abgelaufen – Einstellungen sind gesperrt.",
+      success: false,
+    };
+  }
+
+  const visibility = String(formData.get("scheduleVisibility") ?? "");
+  if (!["own", "team"].includes(visibility)) {
+    return { error: "Ungültige Auswahl.", success: false };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("companies")
+    .update({ schedule_visibility: visibility })
+    .eq("id", context.companyId);
+
+  if (error) {
+    if (readonlyErrorMessage(error.message)) {
+      return {
+        error: "Testphase abgelaufen – Einstellungen sind gesperrt.",
+        success: false,
+      };
+    }
+    return { error: "Einstellung konnte nicht gespeichert werden.", success: false };
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/einsatzplanung");
+  return { error: null, success: true };
+}
+
 export async function uploadLogo(
   _prevState: ThemeActionState,
   formData: FormData,

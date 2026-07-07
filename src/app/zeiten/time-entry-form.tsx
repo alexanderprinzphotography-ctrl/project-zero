@@ -88,7 +88,16 @@ export function TimeEntryForm({
   }, [state.successAt]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      action={formAction}
+      // React setzt das Formular nach jedem Action-Aufruf nativ zurueck (auch
+      // bei einer reinen Ueberlappungs-Warnung statt echtem Erfolg). Bei
+      // <select> greift dieser native Reset auf DOM-Ebene durch, obwohl das
+      // Feld React-kontrolliert ist - sonst koennte "Trotzdem speichern" nach
+      // der Warnung den falschen Mitarbeiter/das falsche Projekt speichern.
+      onReset={(e) => e.preventDefault()}
+      className="flex flex-col gap-4"
+    >
       <div className="flex flex-col gap-1.5">
         <label htmlFor="projectId" className="text-sm font-medium">
           Projekt
