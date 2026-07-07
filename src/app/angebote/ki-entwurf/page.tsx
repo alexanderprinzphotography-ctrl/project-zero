@@ -1,6 +1,10 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
+import { hasFeature } from "@/core/billing/entitlements";
 import { AiIntakeForm } from "../ai-intake-form";
 
 export default async function KiEntwurfPage({
@@ -15,6 +19,32 @@ export default async function KiEntwurfPage({
   if (!context.isWritable) redirect("/angebote");
 
   const supabase = await createClient();
+
+  // Seiten-Ebene zusaetzlich zur Server-Action-Pruefung absichern (defense in
+  // depth): wer die URL direkt aufruft, soll trotzdem einen klaren, sichtbaren
+  // Sperr-Hinweis sehen statt versehentlich das Formular nutzen zu koennen.
+  if (!(await hasFeature(supabase, "ki"))) {
+    return (
+      <div className="flex flex-col gap-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Angebot mit KI erstellen</h1>
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Pro-Feature</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 text-sm">
+            <p className="text-muted-foreground">
+              Die KI-Angebotserstellung ist Teil des Pro-Plans (im laufenden Test voll verfügbar).
+              Manuelle Angebote bleiben in Basic uneingeschränkt möglich.
+            </p>
+            <Link href="/konto/upgrade">
+              <Button>Auf Pro upgraden</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const { data: customers } = await supabase
     .from("contacts")
     .select("id, type, company_name, first_name, last_name")

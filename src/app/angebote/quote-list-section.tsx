@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/core/supabase/server";
+import { hasFeature } from "@/core/billing/entitlements";
 import { formatCentsAsEuro } from "@/core/money/cents";
 import { quoteStatusBadgeClass, quoteStatusLabel, type QuoteStatus } from "@/core/quotes/quote";
+import { AiLockedButton } from "./ai-locked-button";
 
 type QuoteSummaryRow = {
   id: string;
@@ -34,6 +36,7 @@ export async function QuoteListSection({
 
   const { data } = await query;
   const quotes = (data as QuoteSummaryRow[] | null) ?? [];
+  const canUseAi = await hasFeature(supabase, "ki");
 
   const params = new URLSearchParams();
   if (customerId) params.set("customerId", customerId);
@@ -68,11 +71,15 @@ export async function QuoteListSection({
             + Neues Angebot
           </Button>
         </Link>
-        <Link href={`/angebote/ki-entwurf?${params.toString()}`}>
-          <Button type="button" variant="outline" size="sm" className="w-fit">
-            Angebot mit KI erstellen
-          </Button>
-        </Link>
+        {canUseAi ? (
+          <Link href={`/angebote/ki-entwurf?${params.toString()}`}>
+            <Button type="button" variant="outline" size="sm" className="w-fit">
+              Angebot mit KI erstellen
+            </Button>
+          </Link>
+        ) : (
+          <AiLockedButton />
+        )}
       </div>
     </div>
   );

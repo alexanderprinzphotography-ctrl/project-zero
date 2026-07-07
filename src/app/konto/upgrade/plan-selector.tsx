@@ -9,6 +9,18 @@ import { CheckoutButton } from "./checkout-button";
 
 const TIER_LABELS: Record<PlanTier, string> = { basic: "Basic", pro: "Pro" };
 
+const TIER_FEATURES: Record<PlanTier, string[]> = {
+  basic: [
+    "Projekte, Kunden, Zeiterfassung, Einsatzplanung",
+    "Leistungskatalog & manuelle Angebote inkl. PDF",
+    "Tagebuch, Team-Verwaltung",
+  ],
+  pro: [
+    "Alles aus Basic",
+    "KI-Angebotserstellung: aus einer Vor-Ort-Aufnahme automatisch Positionen vorschlagen lassen",
+  ],
+};
+
 export function PlanSelector({
   prices,
   currentTier,
@@ -64,6 +76,14 @@ export function PlanSelector({
                 ) : (
                   <p className="text-sm text-muted-foreground">Preis nicht verfügbar</p>
                 )}
+                <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+                  {TIER_FEATURES[tier].map((feature) => (
+                    <li key={feature} className="flex gap-2">
+                      <span aria-hidden>✓</span>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
                 {isCurrent ? (
                   <span className="w-fit rounded-full bg-primary/15 px-3 py-1 text-xs text-primary">
                     Aktueller Plan

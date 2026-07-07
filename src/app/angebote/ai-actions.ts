@@ -7,6 +7,7 @@ import { computeLineTotalNetCents, hundredthsToDecimalString } from "@/core/mone
 import { recalculateQuoteTotals } from "@/core/quotes/recalculate";
 import { requestAiQuoteDraft, type AiDraftRoom } from "@/core/quotes/ai-draft";
 import { validateAiMatches } from "@/core/quotes/ai-validation";
+import { hasFeature } from "@/core/billing/entitlements";
 
 export type AiDraftActionState = { error: string | null };
 
@@ -66,6 +67,19 @@ export async function createAiQuoteDraft(
     return { error: "Testphase abgelaufen – KI-Entwurf ist gesperrt." };
   }
 
+  const supabase = await createClient();
+
+  // Feature-Gating: VOR jeder weiteren Verarbeitung pruefen, insbesondere vor
+  // dem Katalog-Fetch und dem KI-Aufruf selbst - ohne Berechtigung darf
+  // ueberhaupt kein KI-Aufruf stattfinden, unabhaengig davon, was der Client
+  // sonst noch mitschickt. Basiert ausschliesslich auf dem serverseitigen
+  // Firmen-Status (company_has_feature()), nie auf einem Client-Wert.
+  if (!(await hasFeature(supabase, "ki"))) {
+    return {
+      error: "KI-Angebotserstellung ist im Basic-Plan nicht enthalten. Bitte auf Pro upgraden.",
+    };
+  }
+
   const customerId = String(formData.get("customerId") ?? "").trim();
   const projectId = String(formData.get("projectId") ?? "").trim() || null;
   const description = String(formData.get("description") ?? "").trim();
@@ -75,7 +89,6 @@ export async function createAiQuoteDraft(
 
   const rooms = parseRooms(formData);
 
-  const supabase = await createClient();
   const { data: catalogRows } = await supabase
     .from("catalog_items")
     .select("id, name, unit, unit_price_net_cents")
