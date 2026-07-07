@@ -3,9 +3,11 @@ import { NextResponse, type NextRequest } from "next/server";
 
 /**
  * Oeffentliche Pfade, die ohne Sitzung erreichbar sein muessen (Login, Registrierung,
- * Passwort-Reset-Anfrage, E-Mail-Bestaetigungs-/Recovery-Callback).
+ * Passwort-Reset-Anfrage, E-Mail-Bestaetigungs-/Recovery-Callback, Stripe-Webhook -
+ * Stripe hat nie eine Supabase-Session, der Webhook verifiziert sich stattdessen
+ * selbst ueber die Signaturpruefung, siehe app/api/stripe/webhook/route.ts).
  */
-const PUBLIC_PATHS = ["/login", "/registrieren", "/auth/confirm", "/einladung"];
+const PUBLIC_PATHS = ["/login", "/registrieren", "/auth/confirm", "/einladung", "/api/stripe/webhook"];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
