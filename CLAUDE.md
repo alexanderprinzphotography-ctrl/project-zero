@@ -1,7 +1,7 @@
 # CLAUDE.md — Baustellen-Zentrale
 
 ## Aktueller Stand
-Fertig: MS 0, 1a, 1b, 2, 3, 4, 5a, 5b, 6, 7 · Nächster Meilenstein noch offen · Nur im aktuellen Meilenstein arbeiten.
+Fertig: MS 0–7. In Arbeit: MS 8 (8a Leistungskatalog → 8b Angebots-System → 8c KI-Entwurf). Nur im aktuellen Meilenstein arbeiten, nicht vorgreifen.
 
 ## Projekt (kurz)
 Mandantenfähige SaaS-Webapp für Handwerks- und Baubetriebe (Arbeitstitel „Baustellen-Zentrale"). Kern: Projekt-/Baustellenverwaltung. Modularer Aufbau: branchenagnostischer Core + austauschbare Branchenmodule + zubuchbare Premium-Module.
@@ -16,30 +16,46 @@ Ausführlicher Kontext in `docs/Projektkontext.md`, Fahrplan in `docs/Implementi
 
 ## Architektur-Regeln (immer beachten)
 - Ordnertrennung strikt: `src/core/` = branchenagnostisch, `src/modules/handwerk/` = branchenspezifisch, `src/app/` = Routen. Branchenlogik gehört NIE in `core/`.
-- „Projekt" ist ein generisches Objekt mit Typ; branchenspezifische Felder über Konfiguration, nicht hartcodiert.
+- „Projekt" ist ein generisches Objekt mit Typ; branchenspezifische Felder über Modul-Konfiguration + `metadata` (jsonb), nicht hartcodiert.
 - Konkret vor generisch: kein spekulatives Framework für andere Branchen bauen.
-- DB-Änderungen immer als versionierte SQL-Migrationsdateien im Repo (nicht nur im Supabase-Studio klicken) — reproduzierbar und reviewbar.
+- DB-Änderungen immer als versionierte SQL-Migrationsdateien im Repo (nicht nur im Studio klicken).
 
 ## Sicherheit (kritisch — YOU MUST)
-- Multi-Tenancy: Jede Tabelle mit Firmenbezug bekommt eine `company_id` UND eine Row-Level-Security-Policy. Mandantentrennung NIE nur im App-Code.
-- Mandantenzugriff in Policies über die `SECURITY DEFINER`-Funktion `current_company_id()`; KEINE rekursiven RLS-Policies (nicht per Sub-Select `profiles` gegen `profiles` prüfen).
-- Keine Secrets im Code oder Repo. Alles über Env-Variablen; `.env.local` ist gitignored.
-- Tagebuch-Einträge sind append-only (unveränderlich) — auf DB-Ebene erzwingen.
-- Bei Geldbeträgen und rechtsverbindlichen Dokumenten immer Mensch-im-Kreislauf; KI-Ausgabe nie ungeprüft verbindlich machen.
-- Trial-/Abo-Sperre: Schreib-Policies (INSERT/UPDATE/DELETE) auf Geschäftsdaten enthalten immer `company_is_writable()`; SELECT nicht. Nach Trial-Ablauf gilt firmenweit Nur-Lese-Zugriff, auf DB-Ebene erzwungen.
-- Rollen: `admin` (Firmen-Owner, volle Verwaltung), `projektleiter` (Projekte/Team), `mitarbeiter` (operativ). Einladungen nur durch `admin`.
+- Multi-Tenancy: jede Tabelle mit Firmenbezug hat `company_id` UND eine RLS-Policy. Mandantentrennung NIE nur im App-Code.
+- Mandantenzugriff in Policies über die `SECURITY DEFINER`-Funktion `current_company_id()`; KEINE rekursiven RLS-Policies (nicht `profiles` per Sub-Select gegen `profiles`).
+- Trial-/Abo-Sperre: Schreib-Policies (INSERT/UPDATE/DELETE) auf Geschäftsdaten enthalten immer `company_is_writable()`; SELECT nicht. Nach Trial-Ablauf firmenweit Nur-Lese, auf DB-Ebene erzwungen.
+- Rollen: `admin` (volle Verwaltung), `projektleiter` (Projekte/Team/Angebote), `mitarbeiter` (operativ). Schreiben auf Geschäftsdaten i. d. R. admin + projektleiter; Ausnahmen: Tagebuch-Einträge und eigene Zeiten darf auch `mitarbeiter` anlegen. Einladungen nur durch `admin`.
+- Tagebuch beweissicher: append-only (keine UPDATE-/DELETE-Policies + Trigger) mit Hash-Kette pro Projekt; Fotos fließen in den Hash ein. Korrekturen sind neue, verknüpfte Einträge.
+- Keine Secrets im Code/Repo; alles über Env-Variablen; `.env.local` gitignored. Anthropic-API-Aufrufe nur serverseitig.
+
+## Geld & KI
+- Geldbeträge immer als Ganzzahl in Cent, nie Float. Alle Arithmetik (Positionen, Summen, MwSt, netto/brutto) im Code, NIE durch die KI.
+- KI schlägt vor / strukturiert; ein Mensch gibt frei (Mensch-im-Kreislauf bei Geld und verbindlichen Dokumenten). KI-Preise/-Positionen kommen aus dem Leistungskatalog, werden nicht geraten.
+- Keine Selbst-Umschreibung des Produktivcodes durch Agenten.
+
+## Daten-Konventionen
+- Fortlaufende Nummern pro Firma (Kunden-, Projekt-, Angebotsnummer) über den atomaren, gekeyten Zähler mit Zeilensperre — nie `max()+1`.
+- Zeiten: `timestamptz` speichern, Dauer aus absoluten Zeitpunkten rechnen (DST-sicher), keine stille Rundung.
+- „Entfernen" von Stammdaten = archivieren/inaktiv setzen, kein Hard-Delete (wegen späterer Verknüpfungen).
+
+## Etablierte DB-Helfer (wiederverwenden, nicht neu erfinden; Namen ggf. an die tatsächliche Umsetzung anpassen)
+- `current_company_id()`, Rollen-Helfer (`current_role()` o. ä.) — SECURITY DEFINER, Firma/Rolle des Aufrufers.
+- `company_is_writable()` — Trial-/Abo-Schreibsperre.
+- Sichtbarkeits-Einstellungen: `companies.project_visibility` (`all`|`assigned`), `companies.schedule_visibility` (`own`|`team`) über zugehörige Helfer.
+- Atomarer Nummern-Zähler (`company_id`, `counter_key`).
+- `append_diary_entry()`, `verify_diary()` — Tagebuch-Hash-Kette.
 
 ## Arbeitsweise
-- Immer im Scope des aktuellen Meilensteins bleiben. NICHT vorausschauend Features aus späteren Schritten bauen.
+- Immer im Scope des aktuellen Meilensteins bleiben; nicht vorgreifen.
 - Bei Unklarheit oder destruktiven Aktionen: nachfragen statt annehmen.
-- Kritische Pfade (Auth, Mandantentrennung, Geldbeträge, Tagebuch) mit Tests absichern.
-- Vor Commits müssen `npm run build` und `npm run typecheck` und Lint fehlerfrei durchlaufen.
+- Kritische Pfade (Auth, Mandantentrennung, Geld, Tagebuch-Unveränderlichkeit, Zeit-/Summen-Berechnung) mit Tests absichern.
+- Vor Commits müssen `npm run build`, `npm run lint` und `npm run typecheck` fehlerfrei durchlaufen.
 - Code-Kommentare knapp auf Deutsch.
-- Ziel-Viewports: Desktop & Tablet, fluid/responsive; Handy-Feinschliff später.
+- Ziel-Viewports: Desktop & Tablet, responsive; Handy-Feinschliff später.
 
 ## Commands
 - Dev-Server: `npm run dev`
 - Build: `npm run build`
 - Lint: `npm run lint`
-- Typecheck: `npm run typecheck`   (Script erst ergänzen – siehe unten)
+- Typecheck: `npm run typecheck`
 - Tests: `npm run test` (Vitest; RLS-Integrationstests in `tests/integration` erfordern `SUPABASE_SERVICE_ROLE_KEY` und werden sonst übersprungen)

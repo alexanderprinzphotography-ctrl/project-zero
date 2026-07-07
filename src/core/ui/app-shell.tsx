@@ -105,6 +105,14 @@ export function AppShell({
                   Team
                 </Link>
               )}
+              {userContext.role !== "mitarbeiter" && (
+                <Link
+                  href="/leistungskatalog"
+                  className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                >
+                  Leistungskatalog
+                </Link>
+              )}
               {userContext.role === "admin" && (
                 <Link
                   href="/einstellungen"

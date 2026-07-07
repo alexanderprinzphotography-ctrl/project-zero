@@ -17,6 +17,7 @@ Migrationen manuell im Supabase-Dashboard ausführen, in aufsteigender Dateireih
 | `20260706194708_ms5a_diary_core.sql` | `diary_entries`/`diary_photos` (append-only, Hash-Kette pro Projekt über `append_diary_entry()`), `verify_diary()`, harte Update/Delete-Sperre per Trigger, privater Storage-Bucket `diary-photos` |
 | `20260706225041_ms6_time_entries.sql` | `time_entries` (Timer + manuell, exakte Dauer aus Zeitstempeln, DST-sicher), Partial-Unique-Index für max. einen laufenden Timer pro Nutzer, RLS (eigene Einträge + admin/PL alle) |
 | `20260706232608_ms7_schedule_entries.sql` | `schedule_entries` (Einsatz/Abwesenheit, ganztags/halbtags/Uhrzeit), `companies.schedule_visibility`, `company_schedule_visibility()`, Cross-Company-Validierung, RLS (nur admin/PL schreiben, Sichtbarkeit nach Einstellung) |
+| `20260707074127_ms8a_catalog_items.sql` | `catalog_items` (Leistungskatalog, Preise als Ganzzahl-Cent), optionale fortlaufende Artikelnummer über `next_counter_value()`, RLS (nur admin/PL lesen/schreiben, kein Hard-Delete) |
 
 Spätere Migrationen kommen als weitere, zeitlich aufsteigend benannte `.sql`-Dateien in
 denselben Ordner und werden nach demselben Muster eingespielt.
