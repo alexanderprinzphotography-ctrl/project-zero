@@ -1,7 +1,7 @@
 # CLAUDE.md — Baustellen-Zentrale
 
 ## Aktueller Stand
-Fertig: MS 0–8 (8a Leistungskatalog, 8b Angebots-System, 8c KI-Entwurf). Nächster Meilenstein noch offen. Nur im aktuellen Meilenstein arbeiten, nicht vorgreifen.
+Fertig: MS 0–8, MS 9a (Billing-Kern: Stripe, Abo & Status). In Arbeit: MS 9b (Feature-Gating: Pro schaltet KI frei). Nur im aktuellen Meilenstein arbeiten, nicht vorgreifen.
 
 ## Projekt (kurz)
 Mandantenfähige SaaS-Webapp für Handwerks- und Baubetriebe (Arbeitstitel „Baustellen-Zentrale"). Kern: Projekt-/Baustellenverwaltung. Modularer Aufbau: branchenagnostischer Core + austauschbare Branchenmodule + zubuchbare Premium-Module.
