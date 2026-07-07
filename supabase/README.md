@@ -20,6 +20,7 @@ Migrationen manuell im Supabase-Dashboard ausführen, in aufsteigender Dateireih
 | `20260707074127_ms8a_catalog_items.sql` | `catalog_items` (Leistungskatalog, Preise als Ganzzahl-Cent), optionale fortlaufende Artikelnummer über `next_counter_value()`, RLS (nur admin/PL lesen/schreiben, kein Hard-Delete) |
 | `20260707115539_ms8b_quotes.sql` | `quotes`/`quote_items` (Angebote, Positionen als Preis-Snapshot vom Katalog), `companies.auto_release_*`, `reorder_quote_items()` (atomares Umsortieren), Cross-Company-Validierung, RLS (admin/PL, SELECT ohne Trial-Sperre) |
 | `20260707133859_ms8c_ai_quote_draft.sql` | `quotes.is_ai_generated`/`intake_description`/`intake_rooms`/`unmatched_items`, `quote_items.is_ai_suggested`/`ai_note` (reine Kennzeichnungs-/Nachvollziehbarkeits-Spalten, keine neue RLS noetig) |
+| `20260707180920_ms9a_billing_core.sql` | `companies.plan_tier`/`billing_interval`/`stripe_customer_id`/`stripe_subscription_id`/`current_period_end`; diese Spalten sind für `authenticated` per `REVOKE` gesperrt (nur der Stripe-Webhook via service_role darf sie schreiben); `ensure_stripe_customer_id()` als einzige kontrollierte Ausnahme (nur `stripe_customer_id`, nur einmalig); `company_is_writable()` erlaubt jetzt auch `past_due` |
 
 Spätere Migrationen kommen als weitere, zeitlich aufsteigend benannte `.sql`-Dateien in
 denselben Ordner und werden nach demselben Muster eingespielt.

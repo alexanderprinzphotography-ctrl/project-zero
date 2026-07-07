@@ -9,11 +9,34 @@ import type { UserContext } from "@/core/auth/get-user-context";
 export function TrialBanner({ context }: { context: UserContext }) {
   if (context.planStatus === "active") return null;
 
+  // past_due ist Kulanzzeitraum (Stripe versucht die Zahlung erneut) - bleibt
+  // schreibbar, verdient aber eine deutliche Warnung statt der Nur-Lese-Meldung.
+  if (context.planStatus === "past_due") {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/30 bg-amber-500/10 px-6 py-2 text-sm">
+        <span>
+          Zahlung fehlgeschlagen – bitte Zahlungsmittel aktualisieren, sonst wird der Zugriff gesperrt.
+          {context.role !== "admin" && " Bitte an den Admin wenden."}
+        </span>
+        {context.role === "admin" && (
+          <Link href="/konto/upgrade">
+            <Button size="sm">Zahlungsmittel aktualisieren</Button>
+          </Link>
+        )}
+      </div>
+    );
+  }
+
   if (!context.isWritable) {
+    const message =
+      context.planStatus === "canceled"
+        ? "Abo gekündigt – Nur-Lese-Zugriff."
+        : "Testphase abgelaufen – Nur-Lese-Zugriff.";
+
     return (
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-destructive/30 bg-destructive/10 px-6 py-2 text-sm">
         <span>
-          Testphase abgelaufen – Nur-Lese-Zugriff.
+          {message}
           {context.role !== "admin" && " Bitte an den Admin wenden."}
         </span>
         {context.role === "admin" && (

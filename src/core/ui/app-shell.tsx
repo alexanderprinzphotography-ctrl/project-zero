@@ -129,6 +129,14 @@ export function AppShell({
                   Einstellungen
                 </Link>
               )}
+              {userContext.role === "admin" && (
+                <Link
+                  href="/konto/upgrade"
+                  className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                >
+                  Abo
+                </Link>
+              )}
             </nav>
           )}
         </aside>
