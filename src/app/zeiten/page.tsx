@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
@@ -81,24 +82,31 @@ export default async function ZeitenPage() {
         }
       />
 
-      {context.isWritable ? (
-        <PersonalTimerWidget
-          projectOptions={projectOptions}
-          runningEntry={
-            runningTimerRow
-              ? {
-                  id: runningTimerRow.id,
-                  started_at: runningTimerRow.started_at,
-                  projectLabel: runningTimerRow.projects?.title ?? "Unbekannt",
-                }
-              : null
-          }
-        />
-      ) : (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          Testphase abgelaufen – Zeiterfassung ist gesperrt.
-        </p>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Zeiterfassung</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {context.isWritable ? (
+            <PersonalTimerWidget
+              projectOptions={projectOptions}
+              runningEntry={
+                runningTimerRow
+                  ? {
+                      id: runningTimerRow.id,
+                      started_at: runningTimerRow.started_at,
+                      projectLabel: runningTimerRow.projects?.title ?? "Unbekannt",
+                    }
+                  : null
+              }
+            />
+          ) : (
+            <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              Testphase abgelaufen – Zeiterfassung ist gesperrt.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <TimeEntryList
         entries={myEntries}

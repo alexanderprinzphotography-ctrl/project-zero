@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NarrowContainer } from "@/core/ui/narrow-container";
 import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
@@ -206,7 +207,7 @@ export default async function ProjektDetailPage({
     .join(" – ");
 
   return (
-    <div className="flex flex-col gap-6">
+    <NarrowContainer className="flex flex-col gap-6">
       <PageHeader
         title={`${project.title}${project.is_archived ? " (archiviert)" : ""}`}
         description={`Projekt #${project.project_number}${
@@ -235,55 +236,57 @@ export default async function ProjektDetailPage({
         {canEdit && <StatusChanger id={project.id} status={project.status} />}
       </div>
 
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle>Baustelle</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid grid-cols-2 gap-4">
-            <Field label="Adresse" value={address || null} />
-            <Field label="Zeitraum" value={period || null} />
-          </dl>
-          {project.description && (
-            <div className="mt-4">
-              <dt className="text-xs text-muted-foreground">Beschreibung</dt>
-              <dd className="whitespace-pre-wrap text-sm">{project.description}</dd>
-            </div>
-          )}
-          {handwerkProjectFields.length > 0 && (
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              {handwerkProjectFields.map((field) => {
-                const value = project.metadata?.[field.key];
-                if (typeof value !== "string" || !value) return null;
-                return <Field key={field.key} label={field.label} value={value} />;
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Baustelle</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-2 gap-4">
+              <Field label="Adresse" value={address || null} />
+              <Field label="Zeitraum" value={period || null} />
+            </dl>
+            {project.description && (
+              <div className="mt-4">
+                <dt className="text-xs text-muted-foreground">Beschreibung</dt>
+                <dd className="whitespace-pre-wrap text-sm">{project.description}</dd>
+              </div>
+            )}
+            {handwerkProjectFields.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                {handwerkProjectFields.map((field) => {
+                  const value = project.metadata?.[field.key];
+                  if (typeof value !== "string" || !value) return null;
+                  return <Field key={field.key} label={field.label} value={value} />;
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle>Team</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {members.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Noch niemand zugewiesen.</p>
-          ) : (
-            <ul className="flex flex-col gap-2 text-sm">
-              {members.map((m) => (
-                <li key={m.id} className="flex items-center justify-between">
-                  <span>{m.profiles?.full_name ?? m.profiles?.email ?? m.user_id}</span>
-                  {canEdit && <RemoveMemberButton memberId={m.id} projectId={project.id} />}
-                </li>
-              ))}
-            </ul>
-          )}
-          {canEdit && <AddMemberForm projectId={project.id} availableUsers={availableUsers} />}
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Team</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {members.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Noch niemand zugewiesen.</p>
+            ) : (
+              <ul className="flex flex-col gap-2 text-sm">
+                {members.map((m) => (
+                  <li key={m.id} className="flex items-center justify-between">
+                    <span>{m.profiles?.full_name ?? m.profiles?.email ?? m.user_id}</span>
+                    {canEdit && <RemoveMemberButton memberId={m.id} projectId={project.id} />}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {canEdit && <AddMemberForm projectId={project.id} availableUsers={availableUsers} />}
+          </CardContent>
+        </Card>
+      </div>
 
-      <Card className="max-w-3xl">
+      <Card>
         <CardContent>
           <DiarySection
             projectId={project.id}
@@ -295,7 +298,7 @@ export default async function ProjektDetailPage({
         </CardContent>
       </Card>
 
-      <Card className="max-w-3xl">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Zeiterfassung</CardTitle>
           {context.isWritable && (
@@ -328,7 +331,7 @@ export default async function ProjektDetailPage({
         </CardContent>
       </Card>
 
-      <Card className="max-w-xl">
+      <Card>
         <CardHeader>
           <CardTitle>Angebote</CardTitle>
         </CardHeader>
@@ -336,6 +339,6 @@ export default async function ProjektDetailPage({
           <QuoteListSection projectId={project.id} canView={canWrite} />
         </CardContent>
       </Card>
-    </div>
+    </NarrowContainer>
   );
 }

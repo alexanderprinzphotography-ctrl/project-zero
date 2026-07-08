@@ -126,21 +126,23 @@ export default async function KundenPage({
         <ListContainer>
           {contacts.map((contact) => (
             <ListRow key={contact.id} href={`/kunden/${contact.id}`}>
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="font-medium">
-                  #{contact.customer_number} · {contactDisplayName(contact)}
+              <div className="grid w-full grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-4">
+                <div className="min-w-0">
+                  <span className="font-medium">
+                    #{contact.customer_number} · {contactDisplayName(contact)}
+                  </span>
                   {contact.is_archived && (
                     <span className="ml-2 text-xs text-muted-foreground">(archiviert)</span>
                   )}
-                </span>
-                <span className="text-xs text-muted-foreground">
+                </div>
+                <span className="truncate text-sm text-muted-foreground">
                   {contactTypeLabel(contact.type)}
-                  {contact.city && ` · ${contact.city}`}
+                </span>
+                <span className="truncate text-sm text-muted-foreground">{contact.city ?? "–"}</span>
+                <span className="truncate text-sm text-muted-foreground">
+                  {contact.email ?? contact.phone ?? contact.mobile ?? "–"}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">
-                {contact.email ?? contact.phone ?? contact.mobile ?? "–"}
-              </span>
             </ListRow>
           ))}
         </ListContainer>

@@ -156,29 +156,33 @@ export default async function ProjektePage({
         <ListContainer>
           {projects.map((project) => (
             <ListRow key={project.id} href={`/projekte/${project.id}`}>
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="font-medium">
-                  #{project.project_number} · {project.title}
+              <div className="grid w-full grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-4">
+                <div className="min-w-0">
+                  <span className="font-medium">
+                    #{project.project_number} · {project.title}
+                  </span>
                   {project.is_archived && (
                     <span className="ml-2 text-xs text-muted-foreground">(archiviert)</span>
                   )}
-                </span>
-                <span className="text-xs text-muted-foreground">
+                </div>
+                <span className="truncate text-sm text-muted-foreground">
                   {project.contacts ? contactDisplayName(project.contacts) : "Kein Kunde"}
-                  {project.site_city && ` · ${project.site_city}`}
                 </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground">
-                  {project.project_members.length > 0
-                    ? project.project_members
-                        .map((m) => m.profiles?.full_name ?? m.profiles?.email ?? "–")
-                        .join(", ")
-                    : "Kein Team zugewiesen"}
+                <span className="truncate text-sm text-muted-foreground">
+                  {project.site_city ?? "–"}
                 </span>
-                <Badge variant={projectStatusVariant(project.status)}>
-                  {projectStatusLabel(project.status)}
-                </Badge>
+                <div className="flex items-center gap-3">
+                  <span className="hidden truncate text-xs text-muted-foreground lg:inline">
+                    {project.project_members.length > 0
+                      ? project.project_members
+                          .map((m) => m.profiles?.full_name ?? m.profiles?.email ?? "–")
+                          .join(", ")
+                      : "Kein Team"}
+                  </span>
+                  <Badge variant={projectStatusVariant(project.status)}>
+                    {projectStatusLabel(project.status)}
+                  </Badge>
+                </div>
               </div>
             </ListRow>
           ))}

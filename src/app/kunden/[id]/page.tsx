@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NarrowContainer } from "@/core/ui/narrow-container";
 import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
@@ -44,7 +45,7 @@ export default async function KundeDetailPage({
     .join(", ");
 
   return (
-    <div className="flex flex-col gap-6">
+    <NarrowContainer className="flex flex-col gap-6">
       <PageHeader
         title={`${contactDisplayName(contact)}${contact.is_archived ? " (archiviert)" : ""}`}
         description={`Kunde #${contact.customer_number} · ${contactTypeLabel(contact.type)}`}
@@ -64,37 +65,39 @@ export default async function KundeDetailPage({
         }
       />
 
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle>Kontaktdaten</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid grid-cols-2 gap-4">
-            <Field label="E-Mail" value={contact.email} />
-            <Field label="Telefon" value={contact.phone} />
-            <Field label="Mobil" value={contact.mobile} />
-            <Field label="Adresse" value={address || null} />
-            <Field label="USt-IdNr." value={contact.vat_id} />
-          </dl>
-          {contact.notes && (
-            <div className="mt-4">
-              <dt className="text-xs text-muted-foreground">Notizen</dt>
-              <dd className="whitespace-pre-wrap text-sm">{contact.notes}</dd>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Kontaktdaten</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-2 gap-4">
+              <Field label="E-Mail" value={contact.email} />
+              <Field label="Telefon" value={contact.phone} />
+              <Field label="Mobil" value={contact.mobile} />
+              <Field label="Adresse" value={address || null} />
+              <Field label="USt-IdNr." value={contact.vat_id} />
+            </dl>
+            {contact.notes && (
+              <div className="mt-4">
+                <dt className="text-xs text-muted-foreground">Notizen</dt>
+                <dd className="whitespace-pre-wrap text-sm">{contact.notes}</dd>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle>Verknüpfte Projekte</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          Projekte werden in einem späteren Meilenstein mit Kunden verknüpft.
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Verknüpfte Projekte</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            Projekte werden in einem späteren Meilenstein mit Kunden verknüpft.
+          </CardContent>
+        </Card>
+      </div>
 
-      <Card className="max-w-xl">
+      <Card>
         <CardHeader>
           <CardTitle>Angebote</CardTitle>
         </CardHeader>
@@ -105,6 +108,6 @@ export default async function KundeDetailPage({
           />
         </CardContent>
       </Card>
-    </div>
+    </NarrowContainer>
   );
 }

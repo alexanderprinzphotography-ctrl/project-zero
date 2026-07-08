@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field } from "@/core/ui/field";
@@ -24,7 +25,12 @@ export function ContactForm({
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-4">
+    <Card>
+      <CardHeader>
+        <CardTitle>Kundendaten</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium">Typ</label>
         <div className="flex gap-4 text-sm">
@@ -114,9 +120,11 @@ export function ContactForm({
 
       <FormMessage error={state.error} />
 
-      <Button type="submit" disabled={pending} className="w-fit">
-        {pending ? "Wird gespeichert…" : submitLabel}
-      </Button>
-    </form>
+          <Button type="submit" disabled={pending} className="w-fit">
+            {pending ? "Wird gespeichert…" : submitLabel}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

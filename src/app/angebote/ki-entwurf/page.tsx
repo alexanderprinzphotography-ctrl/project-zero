@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NarrowContainer } from "@/core/ui/narrow-container";
 import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
@@ -28,20 +29,22 @@ export default async function KiEntwurfPage({
     return (
       <div className="flex flex-col gap-6">
         <PageHeader title="Angebot mit KI erstellen" />
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Pro-Feature</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3 text-sm">
-            <p className="text-muted-foreground">
-              Die KI-Angebotserstellung ist Teil des Pro-Plans (im laufenden Test voll verfügbar).
-              Manuelle Angebote bleiben in Basic uneingeschränkt möglich.
-            </p>
-            <Link href="/konto/upgrade">
-              <Button>Auf Pro upgraden</Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <NarrowContainer className="max-w-md">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pro-Feature</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3 text-sm">
+              <p className="text-muted-foreground">
+                Die KI-Angebotserstellung ist Teil des Pro-Plans (im laufenden Test voll verfügbar).
+                Manuelle Angebote bleiben in Basic uneingeschränkt möglich.
+              </p>
+              <Link href="/konto/upgrade">
+                <Button>Auf Pro upgraden</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </NarrowContainer>
       </div>
     );
   }
@@ -63,14 +66,14 @@ export default async function KiEntwurfPage({
         title="Angebot mit KI erstellen"
         description="Beschreibe die vor Ort besprochenen Arbeiten – die KI schlägt passende Katalog-Positionen mit geschätzten Mengen vor. Preise stammen immer aus dem Katalog, nie von der KI. Du prüfst und gibst den Entwurf danach wie gewohnt frei."
       />
-      <div className="max-w-3xl">
+      <NarrowContainer>
         <AiIntakeForm
           customers={customers ?? []}
           projects={projects ?? []}
           defaultCustomerId={customerId}
           defaultProjectId={projectId}
         />
-      </div>
+      </NarrowContainer>
     </div>
   );
 }

@@ -1,35 +1,20 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { useState } from "react";
 import {
   absenceKindLabel,
   entryOverlapsDay,
   formatDateShort,
   formatWeekdayShort,
+  todayDateKey,
   type ScheduleEntry,
 } from "@/core/schedule/entry";
 import { createScheduleEntry, updateScheduleEntry, deleteScheduleEntry } from "./actions";
 import { ScheduleEntryForm, type ProjectOption, type UserOption } from "./entry-form";
 import { DeleteScheduleEntryButton } from "./delete-entry-button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export type GridEntry = ScheduleEntry & { projectLabel: string | null };
-
-function Modal({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: ReactNode }) {
-  if (!isOpen) return null;
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg border border-border bg-background p-6 shadow-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
 
 type ModalState =
   | { mode: "create"; userId: string; dateStr: string }
@@ -52,6 +37,7 @@ export function WeekGrid({
   canEdit: boolean;
 }) {
   const [modalState, setModalState] = useState<ModalState>(null);
+  const today = todayDateKey();
 
   function entriesFor(userId: string, dateStr: string): GridEntry[] {
     return entries.filter((e) => e.user_id === userId && entryOverlapsDay(e, dateStr));
@@ -63,12 +49,26 @@ export function WeekGrid({
         <thead>
           <tr className="border-b border-border">
             <th className="sticky left-0 bg-background p-2 text-left">Mitarbeiter</th>
-            {days.map((d) => (
-              <th key={d} className="min-w-[130px] p-2 text-center font-medium">
-                <div>{formatWeekdayShort(d)}</div>
-                <div className="text-xs font-normal text-muted-foreground">{formatDateShort(d)}</div>
-              </th>
-            ))}
+            {days.map((d) => {
+              const isToday = d === today;
+              return (
+                <th
+                  key={d}
+                  className={`min-w-[130px] p-2 text-center font-medium ${
+                    isToday ? "bg-primary/10" : ""
+                  }`}
+                >
+                  <div className={isToday ? "font-semibold text-primary" : ""}>{formatWeekdayShort(d)}</div>
+                  <div
+                    className={`text-xs font-normal ${
+                      isToday ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    {formatDateShort(d)}
+                  </div>
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
@@ -85,7 +85,7 @@ export function WeekGrid({
                 {days.map((d) => {
                   const dayEntries = entriesFor(emp.id, d);
                   return (
-                    <td key={d} className="border-l border-border p-1.5 align-top">
+                    <td key={d} className="group border-l border-border p-1.5 align-top">
                       <div className="flex flex-col gap-1">
                         {dayEntries.map((entry) => (
                           <button
@@ -119,7 +119,7 @@ export function WeekGrid({
                           <button
                             type="button"
                             onClick={() => setModalState({ mode: "create", userId: emp.id, dateStr: d })}
-                            className="rounded px-1.5 py-1 text-left text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                            className="rounded px-1.5 py-1 text-left text-xs text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
                           >
                             + hinzufügen
                           </button>
@@ -134,40 +134,52 @@ export function WeekGrid({
         </tbody>
       </table>
 
-      <Modal isOpen={modalState !== null} onClose={() => setModalState(null)}>
-        {modalState?.mode === "create" && (
-          <ScheduleEntryForm
-            defaultUserId={modalState.userId}
-            defaultDateStr={modalState.dateStr}
-            userOptions={userOptions}
-            projectOptions={projectOptions}
-            action={createScheduleEntry}
-            onCancel={() => setModalState(null)}
-            onSuccess={() => setModalState(null)}
-            submitLabel="Einplanen"
-          />
-        )}
-        {modalState?.mode === "edit" && (
-          <div className="flex flex-col gap-4">
-            <ScheduleEntryForm
-              entry={modalState.entry}
-              userOptions={userOptions}
-              projectOptions={projectOptions}
-              action={updateScheduleEntry.bind(null, modalState.entry.id)}
-              onCancel={() => setModalState(null)}
-              onSuccess={() => setModalState(null)}
-              submitLabel="Änderungen speichern"
-            />
-            <div className="border-t border-border pt-4">
-              <DeleteScheduleEntryButton
-                id={modalState.entry.id}
-                deleteAction={deleteScheduleEntry}
+      <Dialog open={modalState !== null} onOpenChange={(open) => !open && setModalState(null)}>
+        <DialogContent>
+          {modalState?.mode === "create" && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Einsatz einplanen</DialogTitle>
+              </DialogHeader>
+              <ScheduleEntryForm
+                defaultUserId={modalState.userId}
+                defaultDateStr={modalState.dateStr}
+                userOptions={userOptions}
+                projectOptions={projectOptions}
+                action={createScheduleEntry}
+                onCancel={() => setModalState(null)}
                 onSuccess={() => setModalState(null)}
+                submitLabel="Einplanen"
               />
-            </div>
-          </div>
-        )}
-      </Modal>
+            </>
+          )}
+          {modalState?.mode === "edit" && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Einsatz bearbeiten</DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col gap-4">
+                <ScheduleEntryForm
+                  entry={modalState.entry}
+                  userOptions={userOptions}
+                  projectOptions={projectOptions}
+                  action={updateScheduleEntry.bind(null, modalState.entry.id)}
+                  onCancel={() => setModalState(null)}
+                  onSuccess={() => setModalState(null)}
+                  submitLabel="Änderungen speichern"
+                />
+                <div className="border-t border-border pt-4">
+                  <DeleteScheduleEntryButton
+                    id={modalState.entry.id}
+                    deleteAction={deleteScheduleEntry}
+                    onSuccess={() => setModalState(null)}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

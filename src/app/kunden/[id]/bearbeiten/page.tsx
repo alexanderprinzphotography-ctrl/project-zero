@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
+import { NarrowContainer } from "@/core/ui/narrow-container";
 import { PageHeader } from "@/core/ui/page-header";
 import type { Contact } from "@/core/crm/contact";
 import { ContactForm } from "../../contact-form";
@@ -31,16 +32,18 @@ export default async function KundeBearbeitenPage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={`Kunde #${contact.customer_number} bearbeiten`} />
-      {context.isWritable ? (
-        <ContactForm contact={contact} action={boundUpdate} submitLabel="Änderungen speichern" />
-      ) : (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          Testphase abgelaufen – Bearbeiten ist gesperrt.{" "}
-          <Link href={`/kunden/${id}`} className="underline">
-            Zurück zur Detailansicht
-          </Link>
-        </p>
-      )}
+      <NarrowContainer>
+        {context.isWritable ? (
+          <ContactForm contact={contact} action={boundUpdate} submitLabel="Änderungen speichern" />
+        ) : (
+          <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            Testphase abgelaufen – Bearbeiten ist gesperrt.{" "}
+            <Link href={`/kunden/${id}`} className="underline">
+              Zurück zur Detailansicht
+            </Link>
+          </p>
+        )}
+      </NarrowContainer>
     </div>
   );
 }

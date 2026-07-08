@@ -120,21 +120,21 @@ export default async function AngeboteListPage({
         <ListContainer>
           {quotes.map((quote) => (
             <ListRow key={quote.id} href={`/angebote/${quote.id}`}>
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">#{quote.quote_number}</span>
+              <div className="grid w-full grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-4">
+                <div className="min-w-0">
+                  <span className="font-medium">#{quote.quote_number}</span>{" "}
                   <span>{quote.contacts ? contactDisplayName(quote.contacts) : "–"}</span>
-                  {quote.projects && (
-                    <span className="text-muted-foreground">· {quote.projects.title}</span>
-                  )}
                 </div>
-                <span className="text-xs text-muted-foreground">
+                <span className="truncate text-sm text-muted-foreground">
+                  {quote.projects?.title ?? "–"}
+                </span>
+                <span className="truncate text-sm text-muted-foreground">
                   {new Date(quote.quote_date).toLocaleDateString("de-DE")}
                 </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant={quoteStatusVariant(quote.status)}>{quoteStatusLabel(quote.status)}</Badge>
-                <span className="font-medium">{formatCentsAsEuro(quote.gross_total_cents)}</span>
+                <div className="flex items-center gap-3">
+                  <Badge variant={quoteStatusVariant(quote.status)}>{quoteStatusLabel(quote.status)}</Badge>
+                  <span className="font-medium">{formatCentsAsEuro(quote.gross_total_cents)}</span>
+                </div>
               </div>
             </ListRow>
           ))}

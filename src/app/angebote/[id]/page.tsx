@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NarrowContainer } from "@/core/ui/narrow-container";
 import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
@@ -69,7 +70,7 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
   const editable = isQuoteEditable(quote.status) && context.isWritable;
 
   return (
-    <div className="flex flex-col gap-6">
+    <NarrowContainer className="flex flex-col gap-6">
       <PageHeader
         title={`Angebot #${quote.quote_number}`}
         description={`${quote.contacts ? contactDisplayName(quote.contacts) : ""}${quote.projects ? ` · ${quote.projects.title}` : ""}`}
@@ -98,7 +99,7 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
 
       <QuoteStatusActions quote={quote} canEdit={context.isWritable} />
 
-      <Card className="max-w-xl">
+      <Card>
         <CardHeader>
           <CardTitle>Angaben</CardTitle>
         </CardHeader>
@@ -132,7 +133,7 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
         </CardContent>
       </Card>
 
-      <Card className="max-w-3xl">
+      <Card>
         <CardHeader>
           <CardTitle>Positionen</CardTitle>
         </CardHeader>
@@ -157,7 +158,7 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
       </Card>
 
       {quote.unmatched_items && quote.unmatched_items.length > 0 && (
-        <Card className="max-w-3xl border-warning/40">
+        <Card className="border-warning/40">
           <CardHeader>
             <CardTitle>Nicht zugeordnete Arbeiten</CardTitle>
           </CardHeader>
@@ -177,7 +178,7 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
       )}
 
       {quote.is_ai_generated && quote.intake_description && (
-        <Card className="max-w-3xl">
+        <Card>
           <CardHeader>
             <CardTitle>Vor-Ort-Aufnahme (Grundlage des KI-Entwurfs)</CardTitle>
           </CardHeader>
@@ -197,6 +198,6 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
           </CardContent>
         </Card>
       )}
-    </div>
+    </NarrowContainer>
   );
 }

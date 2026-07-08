@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/core/ui/empty-state";
 import { ListContainer } from "@/core/ui/list";
 import type { CatalogItem } from "@/core/catalog/item";
@@ -25,14 +26,19 @@ export function CatalogItemList({
     <div className="flex flex-col gap-3">
       {canEdit &&
         (showCreateForm ? (
-          <div className="rounded-md border border-border p-4">
-            <CatalogItemForm
-              action={createCatalogItem}
-              onCancel={() => setShowCreateForm(false)}
-              onSuccess={() => setShowCreateForm(false)}
-              submitLabel="Leistung speichern"
-            />
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Neue Leistung</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CatalogItemForm
+                action={createCatalogItem}
+                onCancel={() => setShowCreateForm(false)}
+                onSuccess={() => setShowCreateForm(false)}
+                submitLabel="Leistung speichern"
+              />
+            </CardContent>
+          </Card>
         ) : (
           <Button
             type="button"

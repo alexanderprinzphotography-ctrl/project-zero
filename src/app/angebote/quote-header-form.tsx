@@ -2,12 +2,16 @@
 
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Field } from "@/core/ui/field";
+import { FormMessage } from "@/core/ui/form-message";
 import { contactDisplayName } from "@/core/crm/contact";
 import type { Quote } from "@/core/quotes/quote";
 import { type QuoteActionState } from "./actions";
 
-const fieldClass =
-  "rounded-md border border-input bg-transparent px-3 py-2 text-base outline-none focus:ring-2 focus:ring-ring";
+const selectClass = "h-10 rounded-md border border-input bg-transparent px-3 text-sm";
 
 export type CustomerOption = {
   id: string;
@@ -60,140 +64,121 @@ export function QuoteHeaderForm({
   const [closingText, setClosingText] = useState(quote?.closing_text ?? "");
 
   return (
-    <form
-      action={formAction}
-      // Siehe MS 6/7: React setzt Formulare nach jedem Action-Aufruf (auch bei
-      // reinem Validierungsfehler) nativ zurueck - bei <select> schlaegt das
-      // trotz React-Kontrolle auf DOM-Ebene durch.
-      onReset={(e) => e.preventDefault()}
-      className="flex flex-col gap-4"
-    >
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="customerId" className="text-sm font-medium">
-            Kunde
-          </label>
-          <select
-            id="customerId"
-            name="customerId"
-            value={customerId}
-            onChange={(e) => setCustomerId(e.target.value)}
-            required
-            className={fieldClass}
-          >
-            <option value="" disabled>
-              Kunde wählen…
-            </option>
-            {customers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {contactDisplayName(c)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="projectId" className="text-sm font-medium">
-            Projekt (optional)
-          </label>
-          <select
-            id="projectId"
-            name="projectId"
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-            className={fieldClass}
-          >
-            <option value="">Kein Projekt</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="quoteDate" className="text-sm font-medium">
-            Angebotsdatum
-          </label>
-          <input
-            id="quoteDate"
-            name="quoteDate"
-            type="date"
-            value={quoteDate}
-            onChange={(e) => setQuoteDate(e.target.value)}
-            required
-            className={fieldClass}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="validUntil" className="text-sm font-medium">
-            Gültig bis
-          </label>
-          <input
-            id="validUntil"
-            name="validUntil"
-            type="date"
-            value={validUntil}
-            onChange={(e) => setValidUntil(e.target.value)}
-            required
-            className={fieldClass}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="taxRate" className="text-sm font-medium">
-            Steuersatz (%)
-          </label>
-          <input
-            id="taxRate"
-            name="taxRate"
-            type="number"
-            min={0}
-            value={taxRate}
-            onChange={(e) => setTaxRate(e.target.value)}
-            required
-            className={fieldClass}
-          />
-        </div>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Angebotsdaten</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form
+          action={formAction}
+          // Siehe MS 6/7: React setzt Formulare nach jedem Action-Aufruf (auch bei
+          // reinem Validierungsfehler) nativ zurueck - bei <select> schlaegt das
+          // trotz React-Kontrolle auf DOM-Ebene durch.
+          onReset={(e) => e.preventDefault()}
+          className="flex flex-col gap-4"
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Kunde" htmlFor="customerId">
+              <select
+                id="customerId"
+                name="customerId"
+                value={customerId}
+                onChange={(e) => setCustomerId(e.target.value)}
+                required
+                className={selectClass}
+              >
+                <option value="" disabled>
+                  Kunde wählen…
+                </option>
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {contactDisplayName(c)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Projekt (optional)" htmlFor="projectId">
+              <select
+                id="projectId"
+                name="projectId"
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                className={selectClass}
+              >
+                <option value="">Kein Projekt</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Angebotsdatum" htmlFor="quoteDate">
+              <Input
+                id="quoteDate"
+                name="quoteDate"
+                type="date"
+                value={quoteDate}
+                onChange={(e) => setQuoteDate(e.target.value)}
+                required
+              />
+            </Field>
+            <Field label="Gültig bis" htmlFor="validUntil">
+              <Input
+                id="validUntil"
+                name="validUntil"
+                type="date"
+                value={validUntil}
+                onChange={(e) => setValidUntil(e.target.value)}
+                required
+              />
+            </Field>
+            <Field label="Steuersatz (%)" htmlFor="taxRate">
+              <Input
+                id="taxRate"
+                name="taxRate"
+                type="number"
+                min={0}
+                value={taxRate}
+                onChange={(e) => setTaxRate(e.target.value)}
+                required
+              />
+            </Field>
+          </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="introText" className="text-sm font-medium">
-          Anschreiben – Einleitung (optional)
-        </label>
-        <textarea
-          id="introText"
-          name="introText"
-          rows={3}
-          value={introText}
-          onChange={(e) => setIntroText(e.target.value)}
-          className={fieldClass}
-        />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="closingText" className="text-sm font-medium">
-          Anschreiben – Schluss (optional)
-        </label>
-        <textarea
-          id="closingText"
-          name="closingText"
-          rows={3}
-          value={closingText}
-          onChange={(e) => setClosingText(e.target.value)}
-          className={fieldClass}
-        />
-      </div>
+          <Field label="Anschreiben – Einleitung (optional)" htmlFor="introText">
+            <Textarea
+              id="introText"
+              name="introText"
+              rows={3}
+              value={introText}
+              onChange={(e) => setIntroText(e.target.value)}
+            />
+          </Field>
+          <Field label="Anschreiben – Schluss (optional)" htmlFor="closingText">
+            <Textarea
+              id="closingText"
+              name="closingText"
+              rows={3}
+              value={closingText}
+              onChange={(e) => setClosingText(e.target.value)}
+            />
+          </Field>
 
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+          <FormMessage error={state.error} />
 
-      <div className="flex gap-2">
-        <Button type="submit" disabled={pending} className="w-fit">
-          {pending ? "Wird gespeichert…" : submitLabel}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="ghost" onClick={onCancel} className="w-fit">
-            Abbrechen
-          </Button>
-        )}
-      </div>
-    </form>
+          <div className="flex gap-2">
+            <Button type="submit" disabled={pending} className="w-fit">
+              {pending ? "Wird gespeichert…" : submitLabel}
+            </Button>
+            {onCancel && (
+              <Button type="button" variant="ghost" onClick={onCancel} className="w-fit">
+                Abbrechen
+              </Button>
+            )}
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

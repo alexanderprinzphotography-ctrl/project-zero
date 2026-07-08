@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { NarrowContainer } from "@/core/ui/narrow-container";
 import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
@@ -33,7 +34,7 @@ export default async function AngebotBearbeitenPage({ params }: { params: Promis
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={`Angebot #${quote.quote_number} bearbeiten`} />
-      <div className="max-w-2xl">
+      <NarrowContainer>
         <QuoteHeaderForm
           quote={quote}
           customers={customers ?? []}
@@ -41,7 +42,7 @@ export default async function AngebotBearbeitenPage({ params }: { params: Promis
           action={updateQuote.bind(null, id)}
           submitLabel="Änderungen speichern"
         />
-      </div>
+      </NarrowContainer>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListRow } from "@/core/ui/list";
 import { formatCentsAsEuro } from "@/core/money/cents";
 import type { CatalogItem } from "@/core/catalog/item";
@@ -31,15 +32,20 @@ export function CatalogItemRow({ item, canEdit }: { item: CatalogItem; canEdit: 
 
   if (isEditing) {
     return (
-      <div className="rounded-md border border-border p-4">
-        <CatalogItemForm
-          item={item}
-          action={updateCatalogItem.bind(null, item.id)}
-          onCancel={() => setIsEditing(false)}
-          onSuccess={() => setIsEditing(false)}
-          submitLabel="Änderungen speichern"
-        />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Leistung bearbeiten</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CatalogItemForm
+            item={item}
+            action={updateCatalogItem.bind(null, item.id)}
+            onCancel={() => setIsEditing(false)}
+            onSuccess={() => setIsEditing(false)}
+            submitLabel="Änderungen speichern"
+          />
+        </CardContent>
+      </Card>
     );
   }
 

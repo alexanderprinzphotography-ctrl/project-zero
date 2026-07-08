@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { NarrowContainer } from "@/core/ui/narrow-container";
 import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
@@ -31,7 +32,7 @@ export default async function NeuesAngebotPage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Neues Angebot" />
-      <div className="max-w-2xl">
+      <NarrowContainer>
         <QuoteHeaderForm
           defaultCustomerId={customerId}
           defaultProjectId={projectId}
@@ -40,7 +41,7 @@ export default async function NeuesAngebotPage({
           action={createQuote}
           submitLabel="Angebot anlegen"
         />
-      </div>
+      </NarrowContainer>
     </div>
   );
 }
