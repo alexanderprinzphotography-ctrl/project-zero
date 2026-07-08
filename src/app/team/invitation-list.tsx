@@ -70,7 +70,7 @@ export function InvitationList({ invitations }: { invitations: Invitation[] }) {
   }
 
   return (
-    <ListContainer className="max-w-3xl">
+    <ListContainer>
       {invitations.map((inv) => {
         const status = invitationStatus(inv);
         return (
