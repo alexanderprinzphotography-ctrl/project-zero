@@ -3,6 +3,17 @@ import { getUserContext } from "@/core/auth/get-user-context";
 import { createClient } from "@/core/supabase/server";
 import { OnboardingChecklist, type OnboardingItem } from "@/core/ui/onboarding-checklist";
 import { PageHeader } from "@/core/ui/page-header";
+import { AdminOverview } from "./admin-overview";
+import { EmployeeOverview } from "./employee-overview";
+
+function formatTodayLong(): string {
+  return new Date().toLocaleDateString("de-DE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 export default async function Home() {
   const context = await getUserContext();
@@ -42,13 +53,16 @@ export default async function Home() {
     },
   ];
 
+  const isAdminOrPL = ["admin", "projektleiter"].includes(context.role);
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={`Willkommen${context.fullName ? `, ${context.fullName}` : ""}`}
-        description={context.companyName}
+        description={formatTodayLong()}
       />
       <OnboardingChecklist items={items} />
+      {isAdminOrPL ? <AdminOverview isWritable={context.isWritable} /> : <EmployeeOverview />}
     </div>
   );
 }
