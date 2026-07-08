@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { FileText } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/core/ui/empty-state";
+import { FilterBar, FilterField } from "@/core/ui/filter-bar";
+import { ListContainer, ListRow } from "@/core/ui/list";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { contactDisplayName } from "@/core/crm/contact";
 import { formatCentsAsEuro } from "@/core/money/cents";
-import { quoteStatusBadgeClass, quoteStatusLabel, type QuoteStatus } from "@/core/quotes/quote";
+import { quoteStatusVariant, quoteStatusLabel, type QuoteStatus } from "@/core/quotes/quote";
 
 type QuoteListRow = {
   id: string;
@@ -57,42 +64,32 @@ export default async function AngeboteListPage({
     });
   }
 
+  const hasFilters = Boolean(q || status);
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Angebote</h1>
-          <p className="mt-1 text-muted-foreground">Angebote erstellen, freigeben und als PDF exportieren.</p>
-        </div>
-        {context.isWritable && (
-          <Link href="/angebote/neu">
-            <Button size="sm">+ Neues Angebot</Button>
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title="Angebote"
+        description="Angebote erstellen, freigeben und als PDF exportieren."
+        actions={
+          context.isWritable ? (
+            <Link href="/angebote/neu">
+              <Button size="sm">+ Neues Angebot</Button>
+            </Link>
+          ) : undefined
+        }
+      />
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="q" className="text-sm font-medium">
-            Suche
-          </label>
-          <input
-            id="q"
-            name="q"
-            defaultValue={q ?? ""}
-            placeholder="Angebotsnummer oder Kunde…"
-            className="rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="status" className="text-sm font-medium">
-            Status
-          </label>
+      <FilterBar method="get">
+        <FilterField label="Suche" htmlFor="q">
+          <Input id="q" name="q" defaultValue={q ?? ""} placeholder="Angebotsnummer oder Kunde…" />
+        </FilterField>
+        <FilterField label="Status" htmlFor="status">
           <select
             id="status"
             name="status"
             defaultValue={status ?? ""}
-            className="rounded-md border border-input bg-transparent px-2 py-2 text-sm"
+            className="h-10 rounded-md border border-input bg-transparent px-3 text-sm"
           >
             <option value="">Alle Status</option>
             {ALL_STATUSES.map((s) => (
@@ -101,43 +98,48 @@ export default async function AngeboteListPage({
               </option>
             ))}
           </select>
-        </div>
+        </FilterField>
         <Button type="submit" variant="outline" size="sm">
           Filtern
         </Button>
-      </form>
+      </FilterBar>
 
-      <div className="flex flex-col gap-2">
-        {quotes.length === 0 && (
-          <p className="text-sm text-muted-foreground">Keine Angebote gefunden.</p>
-        )}
-        {quotes.map((quote) => (
-          <Link
-            key={quote.id}
-            href={`/angebote/${quote.id}`}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3 text-sm hover:bg-muted/50"
-          >
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">#{quote.quote_number}</span>
-                <span>{quote.contacts ? contactDisplayName(quote.contacts) : "–"}</span>
-                {quote.projects && (
-                  <span className="text-muted-foreground">· {quote.projects.title}</span>
-                )}
+      {quotes.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title={hasFilters ? "Keine Angebote für diese Filter." : "Noch keine Angebote."}
+          action={
+            context.isWritable && !hasFilters ? (
+              <Link href="/angebote/neu">
+                <Button size="sm">Erstes Angebot erstellen</Button>
+              </Link>
+            ) : undefined
+          }
+        />
+      ) : (
+        <ListContainer>
+          {quotes.map((quote) => (
+            <ListRow key={quote.id} href={`/angebote/${quote.id}`}>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">#{quote.quote_number}</span>
+                  <span>{quote.contacts ? contactDisplayName(quote.contacts) : "–"}</span>
+                  {quote.projects && (
+                    <span className="text-muted-foreground">· {quote.projects.title}</span>
+                  )}
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(quote.quote_date).toLocaleDateString("de-DE")}
+                </span>
               </div>
-              <span className="text-xs text-muted-foreground">
-                {new Date(quote.quote_date).toLocaleDateString("de-DE")}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className={`rounded-full px-2 py-0.5 text-xs ${quoteStatusBadgeClass(quote.status)}`}>
-                {quoteStatusLabel(quote.status)}
-              </span>
-              <span className="font-medium">{formatCentsAsEuro(quote.gross_total_cents)}</span>
-            </div>
-          </Link>
-        ))}
-      </div>
+              <div className="flex items-center gap-3">
+                <Badge variant={quoteStatusVariant(quote.status)}>{quoteStatusLabel(quote.status)}</Badge>
+                <span className="font-medium">{formatCentsAsEuro(quote.gross_total_cents)}</span>
+              </div>
+            </ListRow>
+          ))}
+        </ListContainer>
+      )}
     </div>
   );
 }

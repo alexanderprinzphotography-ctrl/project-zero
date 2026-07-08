@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ListRow } from "@/core/ui/list";
 import { formatBerlinDateTime, formatDurationHM, netSeconds, type TimeEntry } from "@/core/time/entry";
 import { deleteTimeEntry, updateTimeEntry, type TimeActionState } from "./actions";
 import { TimeEntryForm, type ProjectOption, type UserOption } from "./time-entry-form";
@@ -65,14 +67,14 @@ export function TimeEntryRow({
   const net = entry.ended_at ? netSeconds(entry.started_at, entry.ended_at, entry.break_minutes) : null;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3 text-sm">
+    <ListRow>
       <div className="flex flex-col gap-0.5">
         <div className="flex flex-wrap items-center gap-2">
           {showAuthor && entry.authorName && (
             <span className="font-medium">{entry.authorName}</span>
           )}
           {showProject && entry.projectLabel && (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{entry.projectLabel}</span>
+            <Badge variant="default">{entry.projectLabel}</Badge>
           )}
           <span className="text-muted-foreground">
             {formatBerlinDateTime(entry.started_at)} –{" "}
@@ -99,6 +101,6 @@ export function TimeEntryRow({
           </>
         )}
       </div>
-    </div>
+    </ListRow>
   );
 }

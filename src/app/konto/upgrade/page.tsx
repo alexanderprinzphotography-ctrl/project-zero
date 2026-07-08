@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { getDisplayPrices, type BillingInterval, type PlanTier } from "@/core/billing/stripe";
@@ -67,10 +68,7 @@ export default async function UpgradePage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Abo</h1>
-        <p className="mt-1 text-muted-foreground">{context.companyName}</p>
-      </div>
+      <PageHeader title="Abo" description={context.companyName} />
 
       {abgebrochen === "1" && (
         <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">

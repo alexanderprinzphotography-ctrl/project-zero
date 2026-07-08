@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { diaryCategoryLabel, type DiaryEntry } from "@/core/diary/entry";
 import { DiaryPhotoThumbnails } from "./diary-photo-lightbox";
@@ -42,9 +43,7 @@ export function DiaryEntryCard({
           <span className="font-medium text-foreground">{entry.authorName}</span>
           <span>·</span>
           <span>{formatTimestamp(entry.created_at)}</span>
-          {categoryLabel && (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{categoryLabel}</span>
-          )}
+          {categoryLabel && <Badge>{categoryLabel}</Badge>}
         </div>
         {canWrite && (
           <Button type="button" variant="ghost" size="sm" onClick={onCorrect}>

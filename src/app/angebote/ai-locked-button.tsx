@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 /** Sichtbar-gesperrter Zustand fuer Nicht-Pro-Firmen - bewusst nicht versteckt (siehe MS 9b). Klick zeigt einen Upgrade-Hinweis statt direkt wegzunavigieren. */
@@ -18,9 +19,9 @@ export function AiLockedButton() {
         className="w-fit gap-1.5"
       >
         <span aria-hidden>🔒</span> Angebot mit KI erstellen
-        <span className="rounded-full bg-violet-500/15 px-1.5 py-0.5 text-[0.65rem] text-violet-700 dark:text-violet-400">
+        <Badge variant="primary" className="text-[0.65rem]">
           Pro
-        </span>
+        </Badge>
       </Button>
       {showHint && (
         <div className="flex flex-col gap-2 rounded-md bg-muted px-3 py-2 text-xs">

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { createQuote } from "../actions";
@@ -29,9 +30,7 @@ export default async function NeuesAngebotPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Neues Angebot</h1>
-      </div>
+      <PageHeader title="Neues Angebot" />
       <div className="max-w-2xl">
         <QuoteHeaderForm
           defaultCustomerId={customerId}

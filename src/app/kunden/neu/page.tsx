@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUserContext } from "@/core/auth/get-user-context";
+import { PageHeader } from "@/core/ui/page-header";
 import { ContactForm } from "../contact-form";
 import { createContact } from "../actions";
 
@@ -11,9 +12,7 @@ export default async function NeuerKundePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Neuer Kunde</h1>
-      </div>
+      <PageHeader title="Neuer Kunde" />
       {context.isWritable ? (
         <ContactForm action={createContact} submitLabel="Kunde anlegen" />
       ) : (

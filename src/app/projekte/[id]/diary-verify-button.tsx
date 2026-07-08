@@ -29,7 +29,7 @@ export function DiaryVerifyButton({ projectId }: { projectId: string }) {
             exit={{ opacity: 0 }}
             className={
               result.valid
-                ? "rounded-md bg-green-600/10 px-3 py-2 text-sm text-green-700 dark:text-green-400"
+                ? "rounded-md bg-success/10 px-3 py-2 text-sm text-success-foreground"
                 : "rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
             }
           >

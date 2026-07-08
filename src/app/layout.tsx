@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { AppShell } from "@/core/ui/app-shell";
 import { FadeIn } from "@/core/ui/fade-in";
+import { Toaster } from "@/core/ui/toaster";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { getThemeMode } from "@/core/theme/theme-cookie";
 import { brandCssVars } from "@/core/theme/brand-style";
@@ -15,6 +16,13 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+// Kraeftige, geometrische Display-Schrift fuer Ueberschriften (MS 10a) - grenzt
+// sich bewusst vom Geist-Sans-Fliesstext ab fuer eine klare Schrifthierarchie.
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta-sans",
   subsets: ["latin"],
 });
 
@@ -45,6 +53,7 @@ export default async function RootLayout({
   const htmlClassName = [
     geistSans.variable,
     geistMono.variable,
+    plusJakartaSans.variable,
     "h-full",
     "antialiased",
     themeMode === "dark" ? "dark" : "",
@@ -75,6 +84,7 @@ export default async function RootLayout({
         <AppShell userContext={userContext} themeMode={themeMode}>
           <FadeIn>{children}</FadeIn>
         </AppShell>
+        <Toaster themeMode={themeMode} />
       </body>
     </html>
   );

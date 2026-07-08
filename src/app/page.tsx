@@ -1,38 +1,54 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { redirect } from "next/navigation";
 import { getUserContext } from "@/core/auth/get-user-context";
+import { createClient } from "@/core/supabase/server";
+import { OnboardingChecklist, type OnboardingItem } from "@/core/ui/onboarding-checklist";
+import { PageHeader } from "@/core/ui/page-header";
 
 export default async function Home() {
   const context = await getUserContext();
+  if (!context) redirect("/login");
+
+  const supabase = await createClient();
+  const [{ count: contactCount }, { count: projectCount }, { count: catalogCount }] = await Promise.all([
+    supabase.from("contacts").select("id", { count: "exact", head: true }),
+    supabase.from("projects").select("id", { count: "exact", head: true }),
+    supabase.from("catalog_items").select("id", { count: "exact", head: true }),
+  ]);
+
+  const items: OnboardingItem[] = [
+    {
+      key: "branding",
+      label: "Corporate Design einrichten (Logo, Farben)",
+      done: Boolean(context.logoUrl || context.primaryColor || context.accentColor),
+      href: "/einstellungen",
+    },
+    {
+      key: "customer",
+      label: "Ersten Kunden anlegen",
+      done: (contactCount ?? 0) > 0,
+      href: "/kunden/neu",
+    },
+    {
+      key: "project",
+      label: "Erste Baustelle anlegen",
+      done: (projectCount ?? 0) > 0,
+      href: "/projekte/neu",
+    },
+    {
+      key: "catalog",
+      label: "Leistungskatalog befüllen",
+      done: (catalogCount ?? 0) > 0,
+      href: "/leistungskatalog",
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Willkommen{context?.fullName ? `, ${context.fullName}` : ""}
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Auth und Mandantentrennung stehen. Business-Funktionen folgen in den nächsten
-          Meilensteinen.
-        </p>
-      </div>
-      <Card className="max-w-md">
-        <CardHeader>
-          <CardTitle>Status: MS 1a — Auth, Firmen &amp; Rollen</CardTitle>
-          <CardDescription>
-            Firma: {context?.companyName || "–"} · Rolle: {context?.role || "–"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          Nur du und Kolleg:innen deiner Firma können diese Daten sehen — erzwungen durch
-          Row-Level Security in Postgres, nicht nur im App-Code.
-        </CardContent>
-      </Card>
+      <PageHeader
+        title={`Willkommen${context.fullName ? `, ${context.fullName}` : ""}`}
+        description={context.companyName}
+      />
+      <OnboardingChecklist items={items} />
     </div>
   );
 }

@@ -13,7 +13,7 @@ export function TrialBanner({ context }: { context: UserContext }) {
   // schreibbar, verdient aber eine deutliche Warnung statt der Nur-Lese-Meldung.
   if (context.planStatus === "past_due") {
     return (
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/30 bg-amber-500/10 px-6 py-2 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-warning/30 bg-warning/10 px-6 py-2 text-sm">
         <span>
           Zahlung fehlgeschlagen – bitte Zahlungsmittel aktualisieren, sonst wird der Zugriff gesperrt.
           {context.role !== "admin" && " Bitte an den Admin wenden."}

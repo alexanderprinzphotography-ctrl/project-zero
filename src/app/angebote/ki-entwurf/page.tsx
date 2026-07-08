@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { hasFeature } from "@/core/billing/entitlements";
@@ -26,7 +27,7 @@ export default async function KiEntwurfPage({
   if (!(await hasFeature(supabase, "ki"))) {
     return (
       <div className="flex flex-col gap-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Angebot mit KI erstellen</h1>
+        <PageHeader title="Angebot mit KI erstellen" />
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Pro-Feature</CardTitle>
@@ -58,14 +59,10 @@ export default async function KiEntwurfPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Angebot mit KI erstellen</h1>
-        <p className="mt-1 text-muted-foreground">
-          Beschreibe die vor Ort besprochenen Arbeiten – die KI schlägt passende Katalog-Positionen mit
-          geschätzten Mengen vor. Preise stammen immer aus dem Katalog, nie von der KI. Du prüfst und gibst
-          den Entwurf danach wie gewohnt frei.
-        </p>
-      </div>
+      <PageHeader
+        title="Angebot mit KI erstellen"
+        description="Beschreibe die vor Ort besprochenen Arbeiten – die KI schlägt passende Katalog-Positionen mit geschätzten Mengen vor. Preise stammen immer aus dem Katalog, nie von der KI. Du prüfst und gibst den Entwurf danach wie gewohnt frei."
+      />
       <div className="max-w-3xl">
         <AiIntakeForm
           customers={customers ?? []}

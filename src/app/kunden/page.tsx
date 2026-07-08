@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/core/ui/empty-state";
+import { FilterBar, FilterField } from "@/core/ui/filter-bar";
+import { ListContainer, ListRow } from "@/core/ui/list";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { contactDisplayName, contactTypeLabel, type Contact } from "@/core/crm/contact";
@@ -50,104 +56,95 @@ export default async function KundenPage({
 
   const { data } = await query;
   const contacts = (data as Contact[] | null) ?? [];
+  const hasFilters = Boolean(q || type || archived === "1");
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Kunden</h1>
-          <p className="mt-1 text-muted-foreground">Kundenstamm von {context.companyName}.</p>
-        </div>
-        {canSeeWriteButtons &&
-          (canWrite ? (
-            <Link href="/kunden/neu">
-              <Button>Neuer Kunde</Button>
-            </Link>
-          ) : (
-            <Button disabled title="Testphase abgelaufen – Anlegen ist gesperrt.">
-              Neuer Kunde
-            </Button>
-          ))}
-      </div>
+      <PageHeader
+        title="Kunden"
+        description={`Kundenstamm von ${context.companyName}.`}
+        actions={
+          canSeeWriteButtons ? (
+            canWrite ? (
+              <Link href="/kunden/neu">
+                <Button>Neuer Kunde</Button>
+              </Link>
+            ) : (
+              <Button disabled title="Testphase abgelaufen – Anlegen ist gesperrt.">
+                Neuer Kunde
+              </Button>
+            )
+          ) : undefined
+        }
+      />
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="q" className="text-sm font-medium">
-            Suche
-          </label>
-          <input
+      <FilterBar method="get">
+        <FilterField label="Suche" htmlFor="q">
+          <Input
             id="q"
             name="q"
             type="text"
             defaultValue={q ?? ""}
             placeholder="Name, Kundennummer, E-Mail, Telefon…"
-            className="w-64 rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="w-80"
           />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="type" className="text-sm font-medium">
-            Typ
-          </label>
+        </FilterField>
+        <FilterField label="Typ" htmlFor="type">
           <select
             id="type"
             name="type"
             defaultValue={type ?? "all"}
-            className="rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+            className="h-10 rounded-md border border-input bg-transparent px-3 text-sm"
           >
             <option value="all">Alle</option>
             <option value="privat">Privat</option>
             <option value="gewerblich">Gewerblich</option>
           </select>
-        </div>
-        <label className="flex items-center gap-1.5 pb-2 text-sm">
+        </FilterField>
+        <label className="flex items-center gap-1.5 pb-2.5 text-sm">
           <input type="checkbox" name="archived" value="1" defaultChecked={archived === "1"} />
           Archivierte anzeigen
         </label>
         <Button type="submit" variant="outline">
           Filtern
         </Button>
-      </form>
+      </FilterBar>
 
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border text-left text-muted-foreground">
-            <th className="py-2 font-medium">Nr.</th>
-            <th className="py-2 font-medium">Name</th>
-            <th className="py-2 font-medium">Typ</th>
-            <th className="py-2 font-medium">Ort</th>
-            <th className="py-2 font-medium">Kontakt</th>
-          </tr>
-        </thead>
-        <tbody>
+      {contacts.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title={hasFilters ? "Keine Kunden für diese Filter." : "Noch keine Kunden."}
+          action={
+            canWrite && !hasFilters ? (
+              <Link href="/kunden/neu">
+                <Button size="sm">Ersten Kunden anlegen</Button>
+              </Link>
+            ) : undefined
+          }
+        />
+      ) : (
+        <ListContainer>
           {contacts.map((contact) => (
-            <tr key={contact.id} className="border-b border-border last:border-0 hover:bg-accent/5">
-              <td className="py-2">
-                <Link href={`/kunden/${contact.id}`} className="block">
-                  {contact.customer_number}
-                </Link>
-              </td>
-              <td className="py-2">
-                <Link href={`/kunden/${contact.id}`} className="block hover:underline">
-                  {contactDisplayName(contact)}
+            <ListRow key={contact.id} href={`/kunden/${contact.id}`}>
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="font-medium">
+                  #{contact.customer_number} · {contactDisplayName(contact)}
                   {contact.is_archived && (
                     <span className="ml-2 text-xs text-muted-foreground">(archiviert)</span>
                   )}
-                </Link>
-              </td>
-              <td className="py-2">{contactTypeLabel(contact.type)}</td>
-              <td className="py-2">{contact.city ?? "–"}</td>
-              <td className="py-2">{contact.email ?? contact.phone ?? contact.mobile ?? "–"}</td>
-            </tr>
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {contactTypeLabel(contact.type)}
+                  {contact.city && ` · ${contact.city}`}
+                </span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {contact.email ?? contact.phone ?? contact.mobile ?? "–"}
+              </span>
+            </ListRow>
           ))}
-          {contacts.length === 0 && (
-            <tr>
-              <td colSpan={5} className="py-6 text-center text-muted-foreground">
-                Keine Kunden gefunden.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+        </ListContainer>
+      )}
     </div>
   );
 }

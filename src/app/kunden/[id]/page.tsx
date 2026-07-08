@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { contactDisplayName, contactTypeLabel, type Contact } from "@/core/crm/contact";
@@ -44,31 +45,24 @@ export default async function KundeDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {contactDisplayName(contact)}{" "}
-            {contact.is_archived && (
-              <span className="text-sm font-normal text-muted-foreground">(archiviert)</span>
-            )}
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            Kunde #{contact.customer_number} · {contactTypeLabel(contact.type)}
-          </p>
-        </div>
-        {canSeeActions && (
-          <div className="flex items-center gap-2">
-            {canEdit && (
-              <Link href={`/kunden/${contact.id}/bearbeiten`}>
-                <Button size="sm" variant="outline">
-                  Bearbeiten
-                </Button>
-              </Link>
-            )}
-            <ArchiveToggleButton id={contact.id} isArchived={contact.is_archived} />
-          </div>
-        )}
-      </div>
+      <PageHeader
+        title={`${contactDisplayName(contact)}${contact.is_archived ? " (archiviert)" : ""}`}
+        description={`Kunde #${contact.customer_number} · ${contactTypeLabel(contact.type)}`}
+        actions={
+          canSeeActions ? (
+            <>
+              {canEdit && (
+                <Link href={`/kunden/${contact.id}/bearbeiten`}>
+                  <Button size="sm" variant="outline">
+                    Bearbeiten
+                  </Button>
+                </Link>
+              )}
+              <ArchiveToggleButton id={contact.id} isArchived={contact.is_archived} />
+            </>
+          ) : undefined
+        }
+      />
 
       <Card className="max-w-xl">
         <CardHeader>

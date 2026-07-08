@@ -2,6 +2,9 @@
 
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Field } from "@/core/ui/field";
+import { FormMessage } from "@/core/ui/form-message";
 import { centsToEuroInputValue } from "@/core/money/cents";
 import { updateAutoReleaseSettings, type ThemeActionState } from "./actions";
 
@@ -32,22 +35,17 @@ export function AutoReleaseForm({
         Angebote unter einem Betrags-Limit automatisch freigeben
       </label>
       <input type="hidden" name="autoReleaseEnabled" value={enabled ? "true" : "false"} />
-      <div className="flex flex-col gap-1.5 text-sm">
-        <label htmlFor="autoReleaseLimitEuro" className="font-medium">
-          Limit (Brutto, €)
-        </label>
-        <input
+      <Field label="Limit (Brutto, €)" htmlFor="autoReleaseLimitEuro" className="w-40">
+        <Input
           id="autoReleaseLimitEuro"
           name="autoReleaseLimitEuro"
           value={limitEuro}
           onChange={(e) => setLimitEuro(e.target.value)}
           disabled={readOnly || !enabled}
           placeholder="500,00"
-          className="w-40 rounded-md border border-input bg-transparent px-3 py-2 text-sm"
         />
-      </div>
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-      {state.success && <p className="text-sm text-muted-foreground">Gespeichert.</p>}
+      </Field>
+      <FormMessage error={state.error} success={state.success ? "Gespeichert." : null} />
       <Button type="submit" disabled={readOnly || pending} className="w-fit">
         {pending ? "Wird gespeichert…" : "Auto-Freigabe speichern"}
       </Button>

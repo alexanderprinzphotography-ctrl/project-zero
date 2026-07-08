@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getUserContext } from "@/core/auth/get-user-context";
+import { PageHeader } from "@/core/ui/page-header";
 import { DEFAULT_ACCENT_COLOR, DEFAULT_PRIMARY_COLOR } from "@/core/theme/defaults";
 import { ThemeSettingsForm } from "./theme-settings-form";
 import { ProjectVisibilityForm } from "./project-visibility-form";
@@ -14,12 +15,10 @@ export default async function EinstellungenPage() {
 
   return (
     <div className="flex flex-col gap-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Einstellungen</h1>
-        <p className="mt-1 text-muted-foreground">
-          Logo, Markenfarben und Projekt-Sichtbarkeit von {context.companyName}.
-        </p>
-      </div>
+      <PageHeader
+        title="Einstellungen"
+        description={`Logo, Markenfarben und Projekt-Sichtbarkeit von ${context.companyName}.`}
+      />
       <ThemeSettingsForm
         initialPrimary={context.primaryColor ?? DEFAULT_PRIMARY_COLOR}
         initialAccent={context.accentColor ?? DEFAULT_ACCENT_COLOR}
@@ -27,21 +26,21 @@ export default async function EinstellungenPage() {
         readOnly={!context.isWritable}
       />
       <div className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold tracking-tight">Projekt-Sichtbarkeit</h2>
+        <h2 className="font-heading text-xl font-semibold tracking-tight">Projekt-Sichtbarkeit</h2>
         <ProjectVisibilityForm
           initialValue={context.projectVisibility}
           readOnly={!context.isWritable}
         />
       </div>
       <div className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold tracking-tight">Planungs-Sichtbarkeit</h2>
+        <h2 className="font-heading text-xl font-semibold tracking-tight">Planungs-Sichtbarkeit</h2>
         <ScheduleVisibilityForm
           initialValue={context.scheduleVisibility}
           readOnly={!context.isWritable}
         />
       </div>
       <div className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold tracking-tight">Angebote – Auto-Freigabe</h2>
+        <h2 className="font-heading text-xl font-semibold tracking-tight">Angebote – Auto-Freigabe</h2>
         <AutoReleaseForm
           initialEnabled={context.autoReleaseEnabled}
           initialLimitCents={context.autoReleaseLimitCents}

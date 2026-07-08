@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ListRow } from "@/core/ui/list";
 import { formatCentsAsEuro } from "@/core/money/cents";
 import type { CatalogItem } from "@/core/catalog/item";
 import { setCatalogItemActive, updateCatalogItem, type CatalogActionState } from "./actions";
@@ -42,23 +44,13 @@ export function CatalogItemRow({ item, canEdit }: { item: CatalogItem; canEdit: 
   }
 
   return (
-    <div
-      className={`flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3 text-sm ${
-        item.is_active ? "" : "opacity-60"
-      }`}
-    >
+    <ListRow className={item.is_active ? "" : "opacity-60"}>
       <div className="flex flex-col gap-0.5">
         <div className="flex flex-wrap items-center gap-2">
-          {item.item_number && (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{item.item_number}</span>
-          )}
+          {item.item_number && <Badge>{item.item_number}</Badge>}
           <span className="font-medium">{item.name}</span>
           <span className="text-muted-foreground">{item.unit}</span>
-          {item.category && (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-              {item.category}
-            </span>
-          )}
+          {item.category && <Badge>{item.category}</Badge>}
           {!item.is_active && <span className="text-xs text-destructive">inaktiv</span>}
         </div>
         {item.description && <p className="text-muted-foreground">{item.description}</p>}
@@ -74,6 +66,6 @@ export function CatalogItemRow({ item, canEdit }: { item: CatalogItem; canEdit: 
           </>
         )}
       </div>
-    </div>
+    </ListRow>
   );
 }

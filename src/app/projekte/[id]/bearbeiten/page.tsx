@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
+import { PageHeader } from "@/core/ui/page-header";
 import type { Project } from "@/core/projects/project";
 import { handwerkProjectFields } from "@/modules/handwerk/project-fields";
 import { ProjectForm } from "../../project-form";
@@ -32,11 +33,7 @@ export default async function ProjektBearbeitenPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Projekt #{project.project_number} bearbeiten
-        </h1>
-      </div>
+      <PageHeader title={`Projekt #${project.project_number} bearbeiten`} />
       {context.isWritable ? (
         <ProjectForm
           project={project}

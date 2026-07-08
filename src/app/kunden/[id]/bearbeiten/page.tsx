@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
+import { PageHeader } from "@/core/ui/page-header";
 import type { Contact } from "@/core/crm/contact";
 import { ContactForm } from "../../contact-form";
 import { updateContact } from "../../actions";
@@ -29,11 +30,7 @@ export default async function KundeBearbeitenPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Kunde #{contact.customer_number} bearbeiten
-        </h1>
-      </div>
+      <PageHeader title={`Kunde #${contact.customer_number} bearbeiten`} />
       {context.isWritable ? (
         <ContactForm contact={contact} action={boundUpdate} submitLabel="Änderungen speichern" />
       ) : (

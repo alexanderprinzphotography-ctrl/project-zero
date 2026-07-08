@@ -43,7 +43,7 @@ export function AppShell({
           <ThemeToggle current={themeMode} />
           {userContext ? (
             <div className="flex items-center gap-4 text-sm">
-              <span className="text-muted-foreground">
+              <span className="hidden max-w-[min(40vw,320px)] truncate text-muted-foreground md:inline-block">
                 {userContext.companyName} · {userContext.fullName ?? userContext.email} (
                 {userContext.role})
               </span>
@@ -75,32 +75,32 @@ export function AppShell({
             <nav className="flex flex-col gap-1 text-sm">
               <Link
                 href="/projekte"
-                className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                className="rounded-md px-2.5 py-2 hover:bg-accent hover:text-accent-foreground"
               >
                 Projekte
               </Link>
               <Link
                 href="/kunden"
-                className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                className="rounded-md px-2.5 py-2 hover:bg-accent hover:text-accent-foreground"
               >
                 Kunden
               </Link>
               <Link
                 href="/zeiten"
-                className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                className="rounded-md px-2.5 py-2 hover:bg-accent hover:text-accent-foreground"
               >
                 Zeiten
               </Link>
               <Link
                 href="/einsatzplanung"
-                className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                className="rounded-md px-2.5 py-2 hover:bg-accent hover:text-accent-foreground"
               >
                 Einsatzplanung
               </Link>
               {userContext.role !== "mitarbeiter" && (
                 <Link
                   href="/team"
-                  className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                  className="rounded-md px-2.5 py-2 hover:bg-accent hover:text-accent-foreground"
                 >
                   Team
                 </Link>
@@ -108,7 +108,7 @@ export function AppShell({
               {userContext.role !== "mitarbeiter" && (
                 <Link
                   href="/angebote"
-                  className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                  className="rounded-md px-2.5 py-2 hover:bg-accent hover:text-accent-foreground"
                 >
                   Angebote
                 </Link>
@@ -116,7 +116,7 @@ export function AppShell({
               {userContext.role !== "mitarbeiter" && (
                 <Link
                   href="/leistungskatalog"
-                  className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                  className="rounded-md px-2.5 py-2 hover:bg-accent hover:text-accent-foreground"
                 >
                   Leistungskatalog
                 </Link>
@@ -124,7 +124,7 @@ export function AppShell({
               {userContext.role === "admin" && (
                 <Link
                   href="/einstellungen"
-                  className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                  className="rounded-md px-2.5 py-2 hover:bg-accent hover:text-accent-foreground"
                 >
                   Einstellungen
                 </Link>
@@ -132,7 +132,7 @@ export function AppShell({
               {userContext.role === "admin" && (
                 <Link
                   href="/konto/upgrade"
-                  className="rounded-md px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                  className="rounded-md px-2.5 py-2 hover:bg-accent hover:text-accent-foreground"
                 >
                   Abo
                 </Link>

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
+import { FormMessage } from "@/core/ui/form-message";
 import { updateProjectVisibility, type ThemeActionState } from "./actions";
 
 const initialState: ThemeActionState = { error: null, success: false };
@@ -39,8 +40,7 @@ export function ProjectVisibilityForm({
           Mitarbeiter sehen nur zugewiesene Projekte (Admin/Projektleiter sehen immer alle)
         </label>
       </div>
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-      {state.success && <p className="text-sm text-muted-foreground">Gespeichert.</p>}
+      <FormMessage error={state.error} success={state.success ? "Gespeichert." : null} />
       <Button type="submit" disabled={readOnly || pending} className="w-fit">
         {pending ? "Wird gespeichert…" : "Sichtbarkeit speichern"}
       </Button>

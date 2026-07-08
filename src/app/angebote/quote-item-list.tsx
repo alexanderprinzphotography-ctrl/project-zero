@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ListRow } from "@/core/ui/list";
 import { formatCentsAsEuro } from "@/core/money/cents";
 import { decimalNumberToHundredths, hundredthsToQuantityInputValue } from "@/core/money/quote-math";
 import type { QuoteItem } from "@/core/quotes/quote";
@@ -74,19 +76,12 @@ export function QuoteItemList({
             submitLabel="Änderungen speichern"
           />
         ) : (
-          <div
-            key={item.id}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3 text-sm"
-          >
+          <ListRow key={item.id}>
             <div className="flex flex-col gap-0.5">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-muted-foreground">Pos. {item.position}</span>
                 <span className="font-medium">{item.name}</span>
-                {item.is_ai_suggested && (
-                  <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-xs text-violet-700 dark:text-violet-400">
-                    KI-Vorschlag · Menge geschätzt
-                  </span>
-                )}
+                {item.is_ai_suggested && <Badge variant="primary">KI-Vorschlag · Menge geschätzt</Badge>}
               </div>
               <span className="text-muted-foreground">
                 {hundredthsToQuantityInputValue(decimalNumberToHundredths(Number(item.quantity)))} {item.unit} ×{" "}
@@ -125,7 +120,7 @@ export function QuoteItemList({
                 </>
               )}
             </div>
-          </div>
+          </ListRow>
         ),
       )}
 

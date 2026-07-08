@@ -1,3 +1,5 @@
+import type { BadgeVariant } from "@/components/ui/badge";
+
 export type ProjectStatus = "geplant" | "aktiv" | "pausiert" | "abgeschlossen";
 
 export const PROJECT_STATUSES: ProjectStatus[] = ["geplant", "aktiv", "pausiert", "abgeschlossen"];
@@ -32,5 +34,18 @@ export function projectStatusLabel(status: ProjectStatus): string {
       return "Pausiert";
     case "abgeschlossen":
       return "Abgeschlossen";
+  }
+}
+
+export function projectStatusVariant(status: ProjectStatus): BadgeVariant {
+  switch (status) {
+    case "geplant":
+      return "default";
+    case "aktiv":
+      return "success";
+    case "pausiert":
+      return "warning";
+    case "abgeschlossen":
+      return "primary";
   }
 }

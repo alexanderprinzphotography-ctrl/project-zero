@@ -1,3 +1,5 @@
+import { ListContainer, ListRow } from "@/core/ui/list";
+
 export type Member = {
   id: string;
   full_name: string | null;
@@ -18,23 +20,16 @@ function roleLabel(role: string): string {
 
 export function MemberList({ members }: { members: Member[] }) {
   return (
-    <table className="w-full max-w-2xl text-sm">
-      <thead>
-        <tr className="border-b border-border text-left text-muted-foreground">
-          <th className="py-2 font-medium">Name</th>
-          <th className="py-2 font-medium">E-Mail</th>
-          <th className="py-2 font-medium">Rolle</th>
-        </tr>
-      </thead>
-      <tbody>
-        {members.map((m) => (
-          <tr key={m.id} className="border-b border-border last:border-0">
-            <td className="py-2">{m.full_name || "–"}</td>
-            <td className="py-2">{m.email || "–"}</td>
-            <td className="py-2">{roleLabel(m.role)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <ListContainer className="max-w-2xl">
+      {members.map((m) => (
+        <ListRow key={m.id}>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="font-medium">{m.full_name || "–"}</span>
+            <span className="text-xs text-muted-foreground">{m.email || "–"}</span>
+          </div>
+          <span className="text-xs text-muted-foreground">{roleLabel(m.role)}</span>
+        </ListRow>
+      ))}
+    </ListContainer>
   );
 }

@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ListContainer, ListRow } from "@/core/ui/list";
 import { revokeInvitation, type InvitationActionState } from "./actions";
 
 export type Invitation = {
@@ -33,6 +35,21 @@ function invitationStatus(inv: Invitation): "Aktiv" | "Widerrufen" | "Abgelaufen
   return "Aktiv";
 }
 
+function invitationStatusVariant(
+  status: "Aktiv" | "Widerrufen" | "Abgelaufen" | "Aufgebraucht",
+): BadgeVariant {
+  switch (status) {
+    case "Aktiv":
+      return "success";
+    case "Widerrufen":
+      return "destructive";
+    case "Abgelaufen":
+      return "default";
+    case "Aufgebraucht":
+      return "warning";
+  }
+}
+
 function RevokeButton({ id }: { id: string }) {
   const [state, formAction, pending] = useActionState(revokeInvitation, initialState);
 
@@ -53,35 +70,27 @@ export function InvitationList({ invitations }: { invitations: Invitation[] }) {
   }
 
   return (
-    <table className="w-full max-w-3xl text-sm">
-      <thead>
-        <tr className="border-b border-border text-left text-muted-foreground">
-          <th className="py-2 font-medium">Rolle</th>
-          <th className="py-2 font-medium">Typ</th>
-          <th className="py-2 font-medium">Ablauf</th>
-          <th className="py-2 font-medium">Nutzung</th>
-          <th className="py-2 font-medium">Status</th>
-          <th className="py-2 font-medium" />
-        </tr>
-      </thead>
-      <tbody>
-        {invitations.map((inv) => {
-          const status = invitationStatus(inv);
-          return (
-            <tr key={inv.id} className="border-b border-border last:border-0">
-              <td className="py-2">{roleLabel(inv.role)}</td>
-              <td className="py-2">{inv.max_uses === null ? "Team-Link" : "Einmal-Link"}</td>
-              <td className="py-2">{new Date(inv.expires_at).toLocaleDateString("de-DE")}</td>
-              <td className="py-2">
-                {inv.used_count}
+    <ListContainer className="max-w-3xl">
+      {invitations.map((inv) => {
+        const status = invitationStatus(inv);
+        return (
+          <ListRow key={inv.id}>
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="font-medium">
+                {roleLabel(inv.role)} · {inv.max_uses === null ? "Team-Link" : "Einmal-Link"}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Ablauf: {new Date(inv.expires_at).toLocaleDateString("de-DE")} · Nutzung: {inv.used_count}
                 {inv.max_uses !== null ? ` / ${inv.max_uses}` : ""}
-              </td>
-              <td className="py-2">{status}</td>
-              <td className="py-2 text-right">{status === "Aktiv" && <RevokeButton id={inv.id} />}</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant={invitationStatusVariant(status)}>{status}</Badge>
+              {status === "Aktiv" && <RevokeButton id={inv.id} />}
+            </div>
+          </ListRow>
+        );
+      })}
+    </ListContainer>
   );
 }

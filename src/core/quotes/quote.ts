@@ -1,3 +1,5 @@
+import type { BadgeVariant } from "@/components/ui/badge";
+
 export type QuoteStatus =
   | "entwurf"
   | "zur_freigabe"
@@ -71,20 +73,20 @@ export function quoteStatusLabel(status: QuoteStatus): string {
   }
 }
 
-export function quoteStatusBadgeClass(status: QuoteStatus): string {
+export function quoteStatusVariant(status: QuoteStatus): BadgeVariant {
   switch (status) {
     case "entwurf":
-      return "bg-muted text-muted-foreground";
+      return "default";
     case "zur_freigabe":
-      return "bg-amber-500/15 text-amber-700 dark:text-amber-400";
+      return "warning";
     case "freigegeben":
-      return "bg-primary/15 text-primary";
+      return "primary";
     case "gesendet":
-      return "bg-blue-500/15 text-blue-700 dark:text-blue-400";
+      return "info";
     case "angenommen":
-      return "bg-green-500/15 text-green-700 dark:text-green-400";
+      return "success";
     case "abgelehnt":
-      return "bg-destructive/15 text-destructive";
+      return "destructive";
   }
 }
 

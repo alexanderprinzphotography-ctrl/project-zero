@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { FilterBar, FilterField } from "@/core/ui/filter-bar";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { formatDurationHM, netSeconds } from "@/core/time/entry";
@@ -72,40 +75,19 @@ export default async function ZeitAuswertungPage({
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Auswertung</h1>
-        <p className="mt-1 text-muted-foreground">Netto-Zeit, exakt (keine Rundung vor der Summe).</p>
-      </div>
+      <PageHeader title="Auswertung" description="Netto-Zeit, exakt (keine Rundung vor der Summe)." />
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="from" className="text-sm font-medium">
-            Von
-          </label>
-          <input
-            id="from"
-            name="from"
-            type="date"
-            defaultValue={from ?? ""}
-            className="rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="to" className="text-sm font-medium">
-            Bis
-          </label>
-          <input
-            id="to"
-            name="to"
-            type="date"
-            defaultValue={to ?? ""}
-            className="rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-          />
-        </div>
+      <FilterBar method="get">
+        <FilterField label="Von" htmlFor="from">
+          <Input id="from" name="from" type="date" defaultValue={from ?? ""} />
+        </FilterField>
+        <FilterField label="Bis" htmlFor="to">
+          <Input id="to" name="to" type="date" defaultValue={to ?? ""} />
+        </FilterField>
         <Button type="submit" variant="outline">
           Filtern
         </Button>
-      </form>
+      </FilterBar>
 
       <Card className="max-w-md">
         <CardHeader>

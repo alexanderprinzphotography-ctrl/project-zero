@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-plus-jakarta-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -27,6 +27,12 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success-foreground: var(--success-foreground);
+  --color-success: var(--success);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning: var(--warning);
+  --color-info-foreground: var(--info-foreground);
+  --color-info: var(--info);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -66,6 +72,15 @@
   --accent: #f59e0b;
   --accent-foreground: #171717;
   --destructive: oklch(0.577 0.245 27.325);
+  /* Status-Tokens (MS 10a): Hintergrundfarbe fix wie Primary/Accent, nur der
+     Vordergrund-Ton wechselt zwischen hell/dunkel fuer Kontrast - Muster aus
+     dem bisherigen quoteStatusBadgeClass (amber-700/amber-400 usw.) uebernommen. */
+  --success: #16a34a;
+  --success-foreground: #15803d;
+  --warning: #f59e0b;
+  --warning-foreground: #b45309;
+  --info: #2563eb;
+  --info-foreground: #1d4ed8;
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -101,6 +116,12 @@
   --accent: #f59e0b;
   --accent-foreground: #171717;
   --destructive: oklch(0.704 0.191 22.216);
+  --success: #16a34a;
+  --success-foreground: #4ade80;
+  --warning: #f59e0b;
+  --warning-foreground: #fbbf24;
+  --info: #2563eb;
+  --info-foreground: #60a5fa;
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);

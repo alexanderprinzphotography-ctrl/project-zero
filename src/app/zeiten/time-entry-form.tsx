@@ -2,11 +2,14 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Field } from "@/core/ui/field";
+import { FormMessage } from "@/core/ui/form-message";
 import { toBerlinDateTimeLocalValue, type TimeEntry } from "@/core/time/entry";
 import { type TimeActionState } from "./actions";
 
-const fieldClass =
-  "rounded-md border border-input bg-transparent px-3 py-2 text-base outline-none focus:ring-2 focus:ring-ring";
+const selectClass = "h-10 rounded-md border border-input bg-transparent px-3 text-sm";
 
 export type ProjectOption = { id: string; label: string };
 export type UserOption = { id: string; label: string };
@@ -31,19 +34,18 @@ function LocalDateTimeField({
   const isoValue = value ? new Date(value).toISOString() : "";
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium">{label}</label>
-      <input
+    <Field label={label} htmlFor={`${name}-local`}>
+      <Input
+        id={`${name}-local`}
         type="datetime-local"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={fieldClass}
       />
       {/* Umwandlung lokal (Europe/Berlin, Browser-Zeitzone) -> UTC-ISO passiert
           hier im Browser, nicht auf dem Server (der oft in UTC laeuft) - sonst
           waeren Dauer-Berechnungen ueber Zeitumstellungen hinweg falsch. */}
       <input type="hidden" name={name} value={isoValue} readOnly />
-    </div>
+    </Field>
   );
 }
 
@@ -98,17 +100,14 @@ export function TimeEntryForm({
       onReset={(e) => e.preventDefault()}
       className="flex flex-col gap-4"
     >
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="projectId" className="text-sm font-medium">
-          Projekt
-        </label>
+      <Field label="Projekt" htmlFor="projectId">
         <select
           id="projectId"
           name="projectId"
           value={projectId}
           onChange={(e) => setProjectId(e.target.value)}
           required
-          className={fieldClass}
+          className={selectClass}
         >
           <option value="" disabled>
             Projekt wählen…
@@ -119,19 +118,16 @@ export function TimeEntryForm({
             </option>
           ))}
         </select>
-      </div>
+      </Field>
 
       {userOptions.length > 0 && (
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="userId" className="text-sm font-medium">
-            Mitarbeiter
-          </label>
+        <Field label="Mitarbeiter" htmlFor="userId">
           <select
             id="userId"
             name="userId"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
-            className={fieldClass}
+            className={selectClass}
           >
             <option value="">Ich selbst</option>
             {userOptions.map((u) => (
@@ -140,7 +136,7 @@ export function TimeEntryForm({
               </option>
             ))}
           </select>
-        </div>
+        </Field>
       )}
 
       <div className="flex flex-wrap gap-4">
@@ -156,39 +152,31 @@ export function TimeEntryForm({
           value={endedAtLocal}
           onChange={setEndedAtLocal}
         />
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="breakMinutes" className="text-sm font-medium">
-            Pause (Minuten)
-          </label>
-          <input
+        <Field label="Pause (Minuten)" htmlFor="breakMinutes" className="w-28">
+          <Input
             id="breakMinutes"
             name="breakMinutes"
             type="number"
             min={0}
             value={breakMinutesStr}
             onChange={(e) => setBreakMinutesStr(e.target.value)}
-            className={`${fieldClass} w-28`}
           />
-        </div>
+        </Field>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="note" className="text-sm font-medium">
-          Notiz (optional)
-        </label>
-        <textarea
+      <Field label="Notiz (optional)" htmlFor="note">
+        <Textarea
           id="note"
           name="note"
           rows={2}
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          className={fieldClass}
         />
-      </div>
+      </Field>
 
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+      <FormMessage error={state.error} />
       {state.warning && (
-        <div className="flex flex-col gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
+        <div className="flex flex-col gap-2 rounded-md bg-warning/10 px-3 py-2 text-sm text-warning-foreground">
           <p>{state.warning}</p>
           {/* Bewusst ein natives <button> (nicht die Button-Komponente, die
               @base-ui/react wrapped): der Browser haengt "confirmOverlap=true"

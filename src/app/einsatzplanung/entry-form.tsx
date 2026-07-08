@@ -2,6 +2,10 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Field } from "@/core/ui/field";
+import { FormMessage } from "@/core/ui/form-message";
 import { toBerlinDateTimeLocalValue } from "@/core/time/entry";
 import {
   computeStandardRange,
@@ -15,8 +19,7 @@ import {
 } from "@/core/schedule/entry";
 import { type ScheduleActionState } from "./actions";
 
-const fieldClass =
-  "rounded-md border border-input bg-transparent px-3 py-2 text-base outline-none focus:ring-2 focus:ring-ring";
+const selectClass = "h-10 rounded-md border border-input bg-transparent px-3 text-sm";
 
 export type ProjectOption = { id: string; label: string };
 export type UserOption = { id: string; label: string };
@@ -104,17 +107,14 @@ export function ScheduleEntryForm({
         <input type="hidden" name="confirmAbsenceOverride" value="true" readOnly />
       )}
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="userId" className="text-sm font-medium">
-          Mitarbeiter
-        </label>
+      <Field label="Mitarbeiter" htmlFor="userId">
         <select
           id="userId"
           name="userId"
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
           required
-          className={fieldClass}
+          className={selectClass}
         >
           <option value="" disabled>
             Mitarbeiter wählen…
@@ -125,7 +125,7 @@ export function ScheduleEntryForm({
             </option>
           ))}
         </select>
-      </div>
+      </Field>
 
       <div className="flex flex-col gap-1.5">
         <span className="text-sm font-medium">Typ</span>
@@ -154,17 +154,14 @@ export function ScheduleEntryForm({
       </div>
 
       {type === "einsatz" ? (
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="projectId" className="text-sm font-medium">
-            Projekt
-          </label>
+        <Field label="Projekt" htmlFor="projectId">
           <select
             id="projectId"
             name="projectId"
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
             required
-            className={fieldClass}
+            className={selectClass}
           >
             <option value="" disabled>
               Projekt wählen…
@@ -175,24 +172,21 @@ export function ScheduleEntryForm({
               </option>
             ))}
           </select>
-        </div>
+        </Field>
       ) : (
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="absenceKind" className="text-sm font-medium">
-            Abwesenheitsart
-          </label>
+        <Field label="Abwesenheitsart" htmlFor="absenceKind">
           <select
             id="absenceKind"
             name="absenceKind"
             value={absenceKind}
             onChange={(e) => setAbsenceKind(e.target.value as AbsenceKind)}
-            className={fieldClass}
+            className={selectClass}
           >
             <option value="urlaub">Urlaub</option>
             <option value="krank">Krank</option>
             <option value="sonstiges">Sonstiges</option>
           </select>
-        </div>
+        </Field>
       )}
 
       <div className="flex flex-col gap-1.5">
@@ -237,55 +231,34 @@ export function ScheduleEntryForm({
 
       {mode === "uhrzeit" ? (
         <div className="flex flex-wrap gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Start</label>
-            <input
+          <Field label="Start" htmlFor="startLocal">
+            <Input
+              id="startLocal"
               type="datetime-local"
               value={startLocal}
               onChange={(e) => setStartLocal(e.target.value)}
-              className={fieldClass}
             />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Ende</label>
-            <input
+          </Field>
+          <Field label="Ende" htmlFor="endLocal">
+            <Input
+              id="endLocal"
               type="datetime-local"
               value={endLocal}
               onChange={(e) => setEndLocal(e.target.value)}
-              className={fieldClass}
             />
-          </div>
+          </Field>
         </div>
       ) : (
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="dateStr" className="text-sm font-medium">
-            Datum
-          </label>
-          <input
-            id="dateStr"
-            type="date"
-            value={dateStr}
-            onChange={(e) => setDateStr(e.target.value)}
-            className={fieldClass}
-          />
-        </div>
+        <Field label="Datum" htmlFor="dateStr">
+          <Input id="dateStr" type="date" value={dateStr} onChange={(e) => setDateStr(e.target.value)} />
+        </Field>
       )}
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="note" className="text-sm font-medium">
-          Notiz (optional)
-        </label>
-        <textarea
-          id="note"
-          name="note"
-          rows={2}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          className={fieldClass}
-        />
-      </div>
+      <Field label="Notiz (optional)" htmlFor="note">
+        <Textarea id="note" name="note" rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
+      </Field>
 
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+      <FormMessage error={state.error} />
       {state.blocked && (
         <div className="flex flex-col gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
           <p>{state.blocked}</p>
@@ -303,7 +276,7 @@ export function ScheduleEntryForm({
         </div>
       )}
       {state.warning && (
-        <div className="flex flex-col gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
+        <div className="flex flex-col gap-2 rounded-md bg-warning/10 px-3 py-2 text-sm text-warning-foreground">
           <p>{state.warning}</p>
           <button
             type="submit"

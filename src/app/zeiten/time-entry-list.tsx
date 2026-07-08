@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/core/ui/empty-state";
+import { ListContainer } from "@/core/ui/list";
 import { createManualEntry } from "./actions";
 import { TimeEntryForm, type ProjectOption, type UserOption } from "./time-entry-form";
 import { TimeEntryRow, type DisplayTimeEntry } from "./time-entry-row";
@@ -54,20 +57,23 @@ export function TimeEntryList({
           </Button>
         ))}
 
-      {entries.length === 0 && (
-        <p className="text-sm text-muted-foreground">Noch keine Zeiteinträge.</p>
+      {entries.length === 0 ? (
+        <EmptyState icon={Clock} title="Noch keine Zeiteinträge." />
+      ) : (
+        <ListContainer>
+          {entries.map((entry) => (
+            <TimeEntryRow
+              key={entry.id}
+              entry={entry}
+              projectOptions={projectOptions}
+              userOptions={userOptions}
+              canEdit={isWritable && (isAdminOrPL || entry.user_id === currentUserId)}
+              showProject={showProject}
+              showAuthor={isAdminOrPL}
+            />
+          ))}
+        </ListContainer>
       )}
-      {entries.map((entry) => (
-        <TimeEntryRow
-          key={entry.id}
-          entry={entry}
-          projectOptions={projectOptions}
-          userOptions={userOptions}
-          canEdit={isWritable && (isAdminOrPL || entry.user_id === currentUserId)}
-          showProject={showProject}
-          showAuthor={isAdminOrPL}
-        />
-      ))}
     </div>
   );
 }

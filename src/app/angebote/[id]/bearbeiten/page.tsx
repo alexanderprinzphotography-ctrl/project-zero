@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { isQuoteEditable, type Quote } from "@/core/quotes/quote";
@@ -31,9 +32,7 @@ export default async function AngebotBearbeitenPage({ params }: { params: Promis
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Angebot #{quote.quote_number} bearbeiten</h1>
-      </div>
+      <PageHeader title={`Angebot #${quote.quote_number} bearbeiten`} />
       <div className="max-w-2xl">
         <QuoteHeaderForm
           quote={quote}

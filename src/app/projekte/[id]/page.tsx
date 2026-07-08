@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { contactDisplayName, type ContactType } from "@/core/crm/contact";
-import { projectStatusLabel, type Project } from "@/core/projects/project";
+import { projectStatusLabel, projectStatusVariant, type Project } from "@/core/projects/project";
 import { handwerkProjectFields } from "@/modules/handwerk/project-fields";
 import type { DiaryCategory, DiaryEntry } from "@/core/diary/entry";
 import type { TimeEntrySource } from "@/core/time/entry";
@@ -205,37 +207,31 @@ export default async function ProjektDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {project.title}{" "}
-            {project.is_archived && (
-              <span className="text-sm font-normal text-muted-foreground">(archiviert)</span>
-            )}
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            Projekt #{project.project_number}
-            {project.contacts && <> · Kunde: {contactDisplayName(project.contacts)}</>}
-          </p>
-        </div>
-        {canWrite && (
-          <div className="flex items-center gap-2">
-            {canEdit && (
-              <Link href={`/projekte/${project.id}/bearbeiten`}>
-                <Button size="sm" variant="outline">
-                  Bearbeiten
-                </Button>
-              </Link>
-            )}
-            <ArchiveToggleButton id={project.id} isArchived={project.is_archived} />
-          </div>
-        )}
-      </div>
+      <PageHeader
+        title={`${project.title}${project.is_archived ? " (archiviert)" : ""}`}
+        description={`Projekt #${project.project_number}${
+          project.contacts ? ` · Kunde: ${contactDisplayName(project.contacts)}` : ""
+        }`}
+        actions={
+          canWrite ? (
+            <>
+              {canEdit && (
+                <Link href={`/projekte/${project.id}/bearbeiten`}>
+                  <Button size="sm" variant="outline">
+                    Bearbeiten
+                  </Button>
+                </Link>
+              )}
+              <ArchiveToggleButton id={project.id} isArchived={project.is_archived} />
+            </>
+          ) : undefined
+        }
+      />
 
       <div className="flex flex-wrap items-center gap-3">
-        <span className="rounded-full bg-muted px-3 py-1 text-xs">
+        <Badge variant={projectStatusVariant(project.status)} className="px-3 py-1 text-xs">
           {projectStatusLabel(project.status)}
-        </span>
+        </Badge>
         {canEdit && <StatusChanger id={project.id} status={project.status} />}
       </div>
 

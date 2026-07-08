@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import type { TimeEntrySource } from "@/core/time/entry";
@@ -67,16 +68,18 @@ export default async function ZeitenPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Meine Zeiten</h1>
-        {canSeeAuswertung && (
-          <Link href="/zeiten/auswertung">
-            <Button variant="outline" size="sm">
-              Auswertung
-            </Button>
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title="Meine Zeiten"
+        actions={
+          canSeeAuswertung ? (
+            <Link href="/zeiten/auswertung">
+              <Button variant="outline" size="sm">
+                Auswertung
+              </Button>
+            </Link>
+          ) : undefined
+        }
+      />
 
       {context.isWritable ? (
         <PersonalTimerWidget

@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { contactDisplayName, type ContactType } from "@/core/crm/contact";
 import { formatCentsAsEuro } from "@/core/money/cents";
 import {
   isQuoteEditable,
-  quoteStatusBadgeClass,
+  quoteStatusVariant,
   quoteStatusLabel,
   type Quote,
   type QuoteItem,
@@ -68,40 +70,31 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Angebot #{quote.quote_number}</h1>
-          <p className="mt-1 text-muted-foreground">
-            {quote.contacts && contactDisplayName(quote.contacts)}
-            {quote.projects && <> · {quote.projects.title}</>}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {quote.is_ai_generated && (
-            <span className="rounded-full bg-violet-500/15 px-3 py-1 text-xs text-violet-700 dark:text-violet-400">
-              Entwurf mit KI erstellt
-            </span>
-          )}
-          <span className={`rounded-full px-3 py-1 text-xs ${quoteStatusBadgeClass(quote.status)}`}>
-            {quoteStatusLabel(quote.status)}
-          </span>
-          {editable && (
-            <Link href={`/angebote/${quote.id}/bearbeiten`}>
+      <PageHeader
+        title={`Angebot #${quote.quote_number}`}
+        description={`${quote.contacts ? contactDisplayName(quote.contacts) : ""}${quote.projects ? ` · ${quote.projects.title}` : ""}`}
+        actions={
+          <>
+            {quote.is_ai_generated && <Badge variant="primary">Entwurf mit KI erstellt</Badge>}
+            <Badge variant={quoteStatusVariant(quote.status)} className="px-3 py-1 text-xs">
+              {quoteStatusLabel(quote.status)}
+            </Badge>
+            {editable && (
+              <Link href={`/angebote/${quote.id}/bearbeiten`}>
+                <Button size="sm" variant="outline">
+                  Kopfdaten bearbeiten
+                </Button>
+              </Link>
+            )}
+            <a href={`/angebote/${quote.id}/pdf`} target="_blank" rel="noreferrer">
               <Button size="sm" variant="outline">
-                Kopfdaten bearbeiten
+                PDF
               </Button>
-            </Link>
-          )}
-          <a href={`/angebote/${quote.id}/pdf`} target="_blank" rel="noreferrer">
-            <Button size="sm" variant="outline">
-              PDF
-            </Button>
-          </a>
-          {context.isWritable && quote.status === "entwurf" && (
-            <DeleteQuoteButton id={quote.id} />
-          )}
-        </div>
-      </div>
+            </a>
+            {context.isWritable && quote.status === "entwurf" && <DeleteQuoteButton id={quote.id} />}
+          </>
+        }
+      />
 
       <QuoteStatusActions quote={quote} canEdit={context.isWritable} />
 
@@ -164,7 +157,7 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
       </Card>
 
       {quote.unmatched_items && quote.unmatched_items.length > 0 && (
-        <Card className="max-w-3xl border-amber-500/40">
+        <Card className="max-w-3xl border-warning/40">
           <CardHeader>
             <CardTitle>Nicht zugeordnete Arbeiten</CardTitle>
           </CardHeader>
@@ -174,7 +167,7 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
               NICHT automatisch mit Preis angelegt. Bitte bei Bedarf manuell als Position ergänzen.
             </p>
             {quote.unmatched_items.map((u, i) => (
-              <div key={i} className="rounded-md bg-amber-500/10 px-3 py-2">
+              <div key={i} className="rounded-md bg-warning/10 px-3 py-2">
                 <p className="font-medium">{u.beschreibung}</p>
                 {u.hinweis && <p className="text-xs text-muted-foreground">{u.hinweis}</p>}
               </div>

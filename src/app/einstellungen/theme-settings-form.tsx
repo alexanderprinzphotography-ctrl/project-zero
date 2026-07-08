@@ -3,6 +3,8 @@
 import { useActionState, useState, type CSSProperties } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { FormMessage } from "@/core/ui/form-message";
 import { brandCssVars } from "@/core/theme/brand-style";
 import { updateThemeColors, uploadLogo, type ThemeActionState } from "./actions";
 
@@ -53,14 +55,14 @@ export function ThemeSettingsForm({
                 className="h-9 w-9 cursor-pointer rounded border border-input"
                 aria-label="Primärfarbe (Farbwähler)"
               />
-              <input
+              <Input
                 type="text"
                 name="primaryColor"
                 value={primary}
                 onChange={(e) => setPrimary(e.target.value)}
                 disabled={readOnly}
                 placeholder="#2563eb"
-                className="w-28 rounded-md border border-input bg-transparent px-2 py-1.5 text-sm"
+                className="w-28"
               />
             </div>
           </label>
@@ -75,20 +77,19 @@ export function ThemeSettingsForm({
                 className="h-9 w-9 cursor-pointer rounded border border-input"
                 aria-label="Akzentfarbe (Farbwähler)"
               />
-              <input
+              <Input
                 type="text"
                 name="accentColor"
                 value={accent}
                 onChange={(e) => setAccent(e.target.value)}
                 disabled={readOnly}
                 placeholder="#f59e0b"
-                className="w-28 rounded-md border border-input bg-transparent px-2 py-1.5 text-sm"
+                className="w-28"
               />
             </div>
           </label>
         </div>
-        {colorState.error && <p className="text-sm text-destructive">{colorState.error}</p>}
-        {colorState.success && <p className="text-sm text-muted-foreground">Gespeichert.</p>}
+        <FormMessage error={colorState.error} success={colorState.success ? "Gespeichert." : null} />
         <Button type="submit" disabled={readOnly || colorPending} className="w-fit">
           {colorPending ? "Wird gespeichert…" : "Farben speichern"}
         </Button>
@@ -109,8 +110,7 @@ export function ThemeSettingsForm({
             className="text-sm"
           />
         </label>
-        {logoState.error && <p className="text-sm text-destructive">{logoState.error}</p>}
-        {logoState.success && <p className="text-sm text-muted-foreground">Logo aktualisiert.</p>}
+        <FormMessage error={logoState.error} success={logoState.success ? "Logo aktualisiert." : null} />
         <Button type="submit" disabled={readOnly || logoPending} className="w-fit">
           {logoPending ? "Wird hochgeladen…" : "Logo hochladen"}
         </Button>

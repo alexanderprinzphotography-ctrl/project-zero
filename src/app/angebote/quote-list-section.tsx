@@ -1,9 +1,13 @@
 import Link from "next/link";
+import { FileText } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/core/ui/empty-state";
+import { ListContainer, ListRow } from "@/core/ui/list";
 import { createClient } from "@/core/supabase/server";
 import { hasFeature } from "@/core/billing/entitlements";
 import { formatCentsAsEuro } from "@/core/money/cents";
-import { quoteStatusBadgeClass, quoteStatusLabel, type QuoteStatus } from "@/core/quotes/quote";
+import { quoteStatusVariant, quoteStatusLabel, type QuoteStatus } from "@/core/quotes/quote";
 import { AiLockedButton } from "./ai-locked-button";
 
 type QuoteSummaryRow = {
@@ -45,25 +49,21 @@ export async function QuoteListSection({
   return (
     <div className="flex flex-col gap-2">
       {quotes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Noch keine Angebote.</p>
+        <EmptyState icon={FileText} title="Noch keine Angebote." />
       ) : (
-        quotes.map((quote) => (
-          <Link
-            key={quote.id}
-            href={`/angebote/${quote.id}`}
-            className="flex items-center justify-between rounded-md border border-border p-2 text-sm hover:bg-muted/50"
-          >
-            <span>
-              #{quote.quote_number} · {new Date(quote.quote_date).toLocaleDateString("de-DE")}
-            </span>
-            <span className="flex items-center gap-2">
-              <span className={`rounded-full px-2 py-0.5 text-xs ${quoteStatusBadgeClass(quote.status)}`}>
-                {quoteStatusLabel(quote.status)}
+        <ListContainer>
+          {quotes.map((quote) => (
+            <ListRow key={quote.id} href={`/angebote/${quote.id}`}>
+              <span>
+                #{quote.quote_number} · {new Date(quote.quote_date).toLocaleDateString("de-DE")}
               </span>
-              <span className="font-medium">{formatCentsAsEuro(quote.gross_total_cents)}</span>
-            </span>
-          </Link>
-        ))
+              <span className="flex items-center gap-2">
+                <Badge variant={quoteStatusVariant(quote.status)}>{quoteStatusLabel(quote.status)}</Badge>
+                <span className="font-medium">{formatCentsAsEuro(quote.gross_total_cents)}</span>
+              </span>
+            </ListRow>
+          ))}
+        </ListContainer>
       )}
       <div className="flex gap-2">
         <Link href={`/angebote/neu?${params.toString()}`}>

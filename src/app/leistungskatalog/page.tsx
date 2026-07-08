@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FilterBar, FilterField } from "@/core/ui/filter-bar";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import type { CatalogItem } from "@/core/catalog/item";
@@ -44,38 +47,32 @@ export default async function LeistungskatalogPage({
 
   const { data } = await query;
   const items = (data as CatalogItem[] | null) ?? [];
+  const hasFilters = Boolean(q || category || includeInactive);
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Leistungskatalog</h1>
-        <p className="mt-1 text-muted-foreground">
-          Standard-Leistungen und Artikel mit Einheit und Netto-Preis – die Grundlage für Angebote.
-        </p>
-      </div>
+      <PageHeader
+        title="Leistungskatalog"
+        description="Standard-Leistungen und Artikel mit Einheit und Netto-Preis – die Grundlage für Angebote."
+      />
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="q" className="text-sm font-medium">
-            Suche
-          </label>
-          <input
+      <FilterBar method="get">
+        <FilterField label="Suche" htmlFor="q">
+          <Input
             id="q"
             name="q"
+            type="text"
             defaultValue={q ?? ""}
             placeholder="Name oder Artikelnummer…"
-            className="rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+            className="w-64"
           />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="category" className="text-sm font-medium">
-            Kategorie
-          </label>
+        </FilterField>
+        <FilterField label="Kategorie" htmlFor="category">
           <select
             id="category"
             name="category"
             defaultValue={category ?? ""}
-            className="rounded-md border border-input bg-transparent px-2 py-2 text-sm"
+            className="h-10 rounded-md border border-input bg-transparent px-2 text-sm"
           >
             <option value="">Alle Kategorien</option>
             {categories.map((c) => (
@@ -84,17 +81,17 @@ export default async function LeistungskatalogPage({
               </option>
             ))}
           </select>
-        </div>
-        <label className="flex items-center gap-2 pb-2 text-sm">
+        </FilterField>
+        <label className="flex items-center gap-2 pb-2.5 text-sm">
           <input type="checkbox" name="showInactive" value="1" defaultChecked={includeInactive} />
           Inaktive anzeigen
         </label>
         <Button type="submit" variant="outline" size="sm">
           Filtern
         </Button>
-      </form>
+      </FilterBar>
 
-      <CatalogItemList items={items} canEdit={canEdit} />
+      <CatalogItemList items={items} canEdit={canEdit} hasFilters={hasFilters} />
     </div>
   );
 }

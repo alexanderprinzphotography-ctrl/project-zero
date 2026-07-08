@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUserContext } from "@/core/auth/get-user-context";
+import { PageHeader } from "@/core/ui/page-header";
 import { handwerkProjectFields } from "@/modules/handwerk/project-fields";
 import { ProjectForm } from "../project-form";
 import { getCustomerOptions } from "../customer-options";
@@ -15,9 +16,7 @@ export default async function NeuesProjektPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Neues Projekt</h1>
-      </div>
+      <PageHeader title="Neues Projekt" />
       {context.isWritable ? (
         <ProjectForm
           customers={customers}

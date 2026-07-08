@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { MemberList, type Member } from "./member-list";
@@ -30,10 +31,7 @@ export default async function TeamPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
-        <p className="mt-1 text-muted-foreground">Mitglieder von {context.companyName}.</p>
-      </div>
+      <PageHeader title="Team" description={`Mitglieder von ${context.companyName}.`} />
 
       <MemberList members={(members as Member[] | null) ?? []} />
 

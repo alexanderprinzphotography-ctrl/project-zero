@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/core/ui/page-header";
 import { createClient } from "@/core/supabase/server";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { addDays, getMondayOfWeek, todayDateKey, type ScheduleEntry } from "@/core/schedule/entry";
@@ -87,14 +89,16 @@ export default async function EinsatzplanungPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Einsatzplanung</h1>
-        {!context.isWritable && (
-          <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs text-destructive">
-            Testphase abgelaufen – nur lesend
-          </span>
-        )}
-      </div>
+      <PageHeader
+        title="Einsatzplanung"
+        actions={
+          !context.isWritable ? (
+            <Badge variant="destructive" className="px-3 py-1 text-xs">
+              Testphase abgelaufen – nur lesend
+            </Badge>
+          ) : undefined
+        }
+      />
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
@@ -135,7 +139,7 @@ export default async function EinsatzplanungPage({
             <select
               name="project"
               defaultValue={project ?? ""}
-              className="rounded-md border border-input bg-transparent px-2 py-1.5 text-sm"
+              className="h-10 rounded-md border border-input bg-transparent px-3 text-sm"
             >
               <option value="">Alle Projekte</option>
               {projectOptions.map((p) => (
