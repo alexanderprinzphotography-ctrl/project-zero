@@ -170,6 +170,9 @@ export class SevdeskProvider implements InvoiceProvider {
         invoiceType: "RE",
         currency: "EUR",
         taxType: "default",
+        // Angebot/Rechnung verwenden einen einzigen, einheitlichen Steuersatz -
+        // sevdesk verlangt ihn zusaetzlich auf Rechnungs-Ebene (nicht nur pro Position).
+        taxRate: input.positions[0]?.taxRatePercent ?? 19,
       },
       invoicePosSave,
       invoicePosDelete: null,

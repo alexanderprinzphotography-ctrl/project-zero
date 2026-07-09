@@ -135,6 +135,8 @@ describe("SevdeskProvider.createInvoice", () => {
     const createCall = fetchMock.mock.calls.find((call: unknown[]) => (call[0] as string).includes("Factory/saveInvoice"));
     const body = JSON.parse(createCall![1].body);
     expect(body.invoice.status).toBe(100);
+    expect(body.invoice.taxRate).toBe(19);
+    expect(body.invoice.contactPerson).toEqual({ id: "42", objectName: "SevUser" });
     expect(body.invoicePosSave[0].unity.id).toBe("3");
   });
 
