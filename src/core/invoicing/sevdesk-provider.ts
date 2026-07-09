@@ -237,10 +237,12 @@ export class SevdeskProvider implements InvoiceProvider {
       return { ok: false, error: `Rechnungsstatus konnte nicht abgerufen werden (Status ${res.status}).` };
     }
 
-    const data = (await res.json()) as {
-      objects?: { status?: string | number; invoiceNumber?: string; dueDate?: string | null };
-    };
-    const raw = data.objects;
+    type SevdeskInvoiceObject = { status?: string | number; invoiceNumber?: string; dueDate?: string | null };
+    const data = (await res.json()) as { objects?: SevdeskInvoiceObject | SevdeskInvoiceObject[] };
+    // GET /Invoice/{id} liefert objects je nach sevdesk-Version entweder als
+    // einzelnes Objekt oder (wie GET /Invoice mit Filtern) als Array mit einem
+    // Eintrag - beide Formen abfangen statt eine davon zu erraten.
+    const raw = Array.isArray(data.objects) ? data.objects[0] : data.objects;
     if (!raw) {
       return { ok: false, error: "sevdesk-Antwort enthielt keine Rechnungsdaten." };
     }

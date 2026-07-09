@@ -100,10 +100,11 @@ function mockCreateInvoiceFetch(unities: { id: string; name: string }[], invoice
       return Promise.resolve({ ok: true, status: 200, json: async () => ({ objects: { invoice: { id: "777" } } }) });
     }
     if (url.includes("/Invoice/777")) {
+      // sevdesk liefert GET /Invoice/{id} als Array mit einem Eintrag, nicht als einzelnes Objekt.
       return Promise.resolve({
         ok: true,
         status: 200,
-        json: async () => ({ objects: { status: 100, invoiceNumber, dueDate: null } }),
+        json: async () => ({ objects: [{ status: 100, invoiceNumber, dueDate: null }] }),
       });
     }
     throw new Error(`unerwarteter Aufruf: ${url}`);
@@ -189,6 +190,19 @@ describe("SevdeskProvider.getInvoiceStatus", () => {
     );
     const result = await new SevdeskProvider().getInvoiceStatus("dummy-key", "42");
     expect(result.ok).toBe(false);
+  });
+
+  it("verarbeitet die Array-gewrappte Antwortform von GET /Invoice/{id} korrekt", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ objects: [{ status: 200, invoiceNumber: "RE-3000", dueDate: "2026-08-01" }] }),
+      }),
+    );
+    const result = await new SevdeskProvider().getInvoiceStatus("dummy-key", "42");
+    expect(result).toEqual({ ok: true, status: "offen", invoiceNumber: "RE-3000", dueDate: "2026-08-01" });
   });
 });
 
