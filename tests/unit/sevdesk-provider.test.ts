@@ -93,6 +93,9 @@ function mockCreateInvoiceFetch(unities: { id: string; name: string }[], invoice
     if (url.includes("/Unity")) {
       return Promise.resolve({ ok: true, status: 200, json: async () => ({ objects: unities }) });
     }
+    if (url.includes("/SevUser")) {
+      return Promise.resolve({ ok: true, status: 200, json: async () => ({ objects: [{ id: "42" }] }) });
+    }
     if (url.includes("/Invoice/Factory/saveInvoice")) {
       return Promise.resolve({ ok: true, status: 200, json: async () => ({ objects: { invoice: { id: "777" } } }) });
     }

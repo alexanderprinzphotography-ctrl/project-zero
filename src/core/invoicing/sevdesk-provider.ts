@@ -137,8 +137,10 @@ export class SevdeskProvider implements InvoiceProvider {
 
   async createInvoice(apiKey: string, input: CreateInvoiceInput): Promise<CreateInvoiceResult> {
     let unities: SevdeskUnity[];
+    let contactPersonId: string;
     try {
       unities = await fetchUnities(apiKey);
+      contactPersonId = await fetchDefaultSevUserId(apiKey);
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : "Verbindung zu sevdesk fehlgeschlagen." };
     }
@@ -161,6 +163,7 @@ export class SevdeskProvider implements InvoiceProvider {
         objectName: "Invoice",
         mapAll: true,
         contact: { id: input.externalContactId, objectName: "Contact" },
+        contactPerson: { id: contactPersonId, objectName: "SevUser" },
         invoiceDate: input.invoiceDate,
         header: input.referenceHeader,
         status: 100,
@@ -300,6 +303,25 @@ async function fetchUnities(apiKey: string): Promise<SevdeskUnity[]> {
   return (data.objects ?? [])
     .filter((u) => u.id !== undefined && u.id !== null && u.name)
     .map((u) => ({ id: String(u.id), name: String(u.name) }));
+}
+
+/**
+ * sevdesk verlangt bei der Rechnungserstellung einen Ansprechpartner
+ * (contactPerson, ein SevUser - der Mitarbeiter, nicht der Kunde). Da pro
+ * Firma i. d. R. genau ein sevdesk-Nutzer mit dem verbundenen API-Token
+ * existiert, wird schlicht der erste zurueckgelieferte Nutzer verwendet.
+ */
+async function fetchDefaultSevUserId(apiKey: string): Promise<string> {
+  const res = await sevdeskFetch(apiKey, "/SevUser");
+  if (!res.ok) {
+    throw new Error(`sevdesk-Benutzer konnte nicht ermittelt werden (Status ${res.status}).`);
+  }
+  const data = (await res.json()) as { objects?: { id?: string | number }[] };
+  const id = data.objects?.[0]?.id;
+  if (id === undefined || id === null) {
+    throw new Error("sevdesk hat keinen Benutzer für den Rechnungs-Ansprechpartner geliefert.");
+  }
+  return String(id);
 }
 
 /** Case-insensitives Namens-Matching gegen unser Freitext-Einheiten-Feld; ohne Treffer erste Einheit als kosmetischer Fallback (beeinflusst weder Menge noch Preis). */
