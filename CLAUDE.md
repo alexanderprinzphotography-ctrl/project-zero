@@ -1,7 +1,7 @@
 # CLAUDE.md — Baustellen-Zentrale
 
 ## Aktueller Stand
-Fertig: MS 0–9 (9a Billing-Kern: Stripe/Abo/Status, 9b Feature-Gating: Pro schaltet KI frei), MS 10a–10d (Politur-Fundament, App-Shell-Redesign, Dashboard-Startseite, Innenseiten-Feinschliff), MS 11a (sevdesk-Verbindung: Provider-Abstraktion, verschlüsselte API-Key-Speicherung, Kontakt-Sync), MS 11b (Rechnung aus Angebot: sevdesk-Rechnungserstellung, mehrschichtige Idempotenz, Rechnungsübersicht mit Status-Sync und PDF-Proxy). Nächster Meilenstein noch offen. Nur im aktuellen Meilenstein arbeiten, nicht vorgreifen.
+Fertig: MS 0–9 (9a Billing-Kern: Stripe/Abo/Status, 9b Feature-Gating: Pro schaltet KI frei), MS 10a–10d (Politur-Fundament, App-Shell-Redesign, Dashboard-Startseite, Innenseiten-Feinschliff), MS 11a (sevdesk-Verbindung: Provider-Abstraktion, verschlüsselte API-Key-Speicherung, Kontakt-Sync), MS 11b (Rechnung aus Angebot: sevdesk-Rechnungserstellung, mehrschichtige Idempotenz, Rechnungsübersicht mit Status-Sync und PDF-Proxy), MS 12a (Kundenportal: öffentliche Token-Route `/angebot/<token>`, Annahme/Ablehnung mit Protokoll, App-Routen liegen jetzt unter der Route-Group `src/app/(app)/`). Nächster Meilenstein noch offen. Nur im aktuellen Meilenstein arbeiten, nicht vorgreifen.
 
 ## Projekt (kurz)
 Mandantenfähige SaaS-Webapp für Handwerks- und Baubetriebe (Arbeitstitel „Baustellen-Zentrale"). Kern: Projekt-/Baustellenverwaltung. Modularer Aufbau: branchenagnostischer Core + austauschbare Branchenmodule + zubuchbare Premium-Module.
