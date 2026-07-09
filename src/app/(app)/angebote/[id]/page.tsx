@@ -19,6 +19,7 @@ import {
 import { DeleteQuoteButton } from "../delete-quote-button";
 import { QuoteItemList } from "../quote-item-list";
 import { QuoteStatusActions } from "../quote-status-actions";
+import { ShareLinkSection } from "../share-link-section";
 import type { CatalogItemOption } from "../quote-item-form";
 
 type QuoteDetailRow = Quote & {
@@ -73,6 +74,20 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
     .eq("quote_id", id)
     .maybeSingle();
 
+  const { data: shareLinks } = await supabase
+    .from("quote_share_links")
+    .select("id, token, expires_at, revoked_at, last_viewed_at")
+    .eq("quote_id", id)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const activeLink = shareLinks?.[0] ?? null;
+
+  const { data: quoteResponse } = await supabase
+    .from("quote_responses")
+    .select("action, responder_name, responded_at, ip_address")
+    .eq("quote_id", id)
+    .maybeSingle();
+
   const editable = isQuoteEditable(quote.status) && context.isWritable;
 
   return (
@@ -108,6 +123,20 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
         canEdit={context.isWritable}
         invoiceNumber={invoice?.provider_invoice_number ?? null}
       />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Link für Kunden</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ShareLinkSection
+            quoteId={quote.id}
+            activeLink={activeLink}
+            response={quoteResponse ?? null}
+            canWrite={context.isWritable}
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

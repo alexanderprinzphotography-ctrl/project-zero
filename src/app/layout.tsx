@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { AppShell } from "@/core/ui/app-shell";
-import { FadeIn } from "@/core/ui/fade-in";
 import { Toaster } from "@/core/ui/toaster";
 import { getUserContext } from "@/core/auth/get-user-context";
 import { getThemeMode } from "@/core/theme/theme-cookie";
@@ -43,6 +41,15 @@ const SYSTEM_THEME_SCRIPT = `
 })();
 `;
 
+/**
+ * Minimales Root-Layout - nur das, was fuer JEDE Route gilt (html/body,
+ * Schriften, Theme-Klasse/-Farben). Die "Baustellen-Zentrale"-Chrome
+ * (Header/Sidebar) kommt aus (app)/layout.tsx - das oeffentliche Kundenportal
+ * (/angebot/<token>, MS 12a) liegt bewusst AUSSERHALB dieser Gruppe und
+ * bekommt dadurch nie diese Chrome (kein Next.js-Mechanismus erlaubt es,
+ * das Root-Layout selbst pro Route zu variieren - Route-Groups sind dafuer
+ * der vorgesehene Weg).
+ */
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -81,9 +88,7 @@ export default async function RootLayout({
             {SYSTEM_THEME_SCRIPT}
           </Script>
         )}
-        <AppShell userContext={userContext} themeMode={themeMode}>
-          <FadeIn>{children}</FadeIn>
-        </AppShell>
+        {children}
         <Toaster themeMode={themeMode} />
       </body>
     </html>

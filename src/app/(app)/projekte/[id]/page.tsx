@@ -17,10 +17,10 @@ import { StatusChanger } from "./status-changer";
 import { AddMemberForm, type AssignableUser } from "./add-member-form";
 import { RemoveMemberButton } from "./remove-member-button";
 import { DiarySection } from "./diary-section";
-import { TimerControl } from "@/app/zeiten/timer-control";
-import { TimeEntryList } from "@/app/zeiten/time-entry-list";
-import type { DisplayTimeEntry } from "@/app/zeiten/time-entry-row";
-import { QuoteListSection } from "@/app/angebote/quote-list-section";
+import { TimerControl } from "@/app/(app)/zeiten/timer-control";
+import { TimeEntryList } from "@/app/(app)/zeiten/time-entry-list";
+import type { DisplayTimeEntry } from "@/app/(app)/zeiten/time-entry-row";
+import { QuoteListSection } from "@/app/(app)/angebote/quote-list-section";
 
 function Field({ label, value }: { label: string; value: string | null }) {
   if (!value) return null;
