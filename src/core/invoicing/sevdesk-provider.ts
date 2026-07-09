@@ -44,6 +44,22 @@ async function sevdeskFetch(apiKey: string, path: string, init?: RequestInit): P
   }
 }
 
+/** Extrahiert die sevdesk-Fehlermeldung aus einer nicht-ok-Antwort fuer bessere Diagnose - enthaelt nie den API-Key. */
+async function extractSevdeskErrorDetail(res: Response): Promise<string | null> {
+  try {
+    const text = await res.text();
+    if (!text) return null;
+    try {
+      const parsed = JSON.parse(text) as { error?: { message?: string }; message?: string };
+      return parsed.error?.message ?? parsed.message ?? text.slice(0, 500);
+    } catch {
+      return text.slice(0, 500);
+    }
+  } catch {
+    return null;
+  }
+}
+
 function contactName(contact: ContactInput): string {
   if (contact.type === "gewerblich" && contact.company_name?.trim()) {
     return contact.company_name.trim();
@@ -175,7 +191,11 @@ export class SevdeskProvider implements InvoiceProvider {
       return { ok: false, error: "sevdesk-Rate-Limit erreicht, bitte später erneut versuchen." };
     }
     if (!createRes.ok) {
-      return { ok: false, error: `Rechnung konnte nicht angelegt werden (sevdesk-Status ${createRes.status}).` };
+      const detail = await extractSevdeskErrorDetail(createRes);
+      return {
+        ok: false,
+        error: `Rechnung konnte nicht angelegt werden (sevdesk-Status ${createRes.status}${detail ? `: ${detail}` : ""}).`,
+      };
     }
 
     const created = (await createRes.json()) as { objects?: { invoice?: { id?: string | number } } };
