@@ -131,16 +131,22 @@ export class SevdeskProvider implements InvoiceProvider {
     }
 
     const payload = {
+      objectName: "Contact",
+      mapAll: true,
       name,
       customerNumber: String(contact.customer_number),
       category: { id: CUSTOMER_CATEGORY_ID, objectName: "Category" },
     };
 
+    // Wie /Invoice/Factory/saveInvoice versteht auch /Contact verschachtelte
+    // JSON-Strukturen (hier: category) nicht zuverlaessig - Bracket-Formkodierung
+    // verwenden statt JSON (siehe createInvoice-Kommentar fuer Details).
     let res: Response;
     try {
       res = await sevdeskFetch(apiKey, "/Contact", {
         method: "POST",
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: toBracketFormBody(payload),
       });
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : "Verbindung zu sevdesk fehlgeschlagen." };
@@ -153,7 +159,11 @@ export class SevdeskProvider implements InvoiceProvider {
       return { ok: false, error: "sevdesk-Rate-Limit erreicht, bitte später erneut versuchen." };
     }
     if (!res.ok) {
-      return { ok: false, error: `sevdesk-Kontakt konnte nicht angelegt werden (Status ${res.status}).` };
+      const detail = await extractSevdeskErrorDetail(res);
+      return {
+        ok: false,
+        error: `sevdesk-Kontakt konnte nicht angelegt werden (Status ${res.status}${detail ? `: ${detail}` : ""}).`,
+      };
     }
 
     const data = (await res.json()) as { objects?: { id?: string | number } };

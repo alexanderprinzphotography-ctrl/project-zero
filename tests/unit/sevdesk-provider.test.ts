@@ -47,6 +47,13 @@ describe("SevdeskProvider.upsertContact", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("https://my.sevdesk.de/api/v1/Contact");
     expect(init.headers.Authorization).toBe("dummy-key");
+    expect(init.headers["Content-Type"]).toBe("application/x-www-form-urlencoded");
+
+    // Bracket-Formkodierung statt JSON (Category wurde sonst von sevdesk nicht verstanden).
+    const body = new URLSearchParams(init.body);
+    expect(body.get("name")).toBe("Mustermann Bau GmbH");
+    expect(body.get("category[id]")).toBe("3");
+    expect(body.get("category[objectName]")).toBe("Category");
   });
 
   it("meldet einen ungueltigen Key als klaren Fehler statt zu werfen", async () => {
