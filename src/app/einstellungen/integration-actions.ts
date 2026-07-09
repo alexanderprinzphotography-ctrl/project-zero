@@ -32,10 +32,20 @@ export async function saveAndTestIntegration(
     return { error: result.error, success: null };
   }
 
+  let encryptedApiKey: string;
+  try {
+    encryptedApiKey = encryptSecret(apiKey);
+  } catch {
+    return {
+      error: "Server-Konfiguration unvollständig (INTEGRATION_ENCRYPTION_KEY fehlt oder ist ungültig).",
+      success: null,
+    };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.rpc("upsert_company_integration", {
     p_provider: PROVIDER,
-    p_api_key_encrypted: encryptSecret(apiKey),
+    p_api_key_encrypted: encryptedApiKey,
     p_key_last4: apiKey.slice(-4),
   });
 
@@ -66,7 +76,16 @@ export async function retestIntegration(
     return { error: "Keine sevdesk-Verbindung konfiguriert.", success: null };
   }
 
-  const apiKey = decryptSecret(encryptedKey);
+  let apiKey: string;
+  try {
+    apiKey = decryptSecret(encryptedKey);
+  } catch {
+    return {
+      error: "Server-Konfiguration unvollständig (INTEGRATION_ENCRYPTION_KEY fehlt oder ist ungültig).",
+      success: null,
+    };
+  }
+
   const result = await getInvoiceProvider(PROVIDER).testConnection(apiKey);
 
   await supabase.rpc("set_company_integration_status", {

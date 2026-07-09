@@ -43,7 +43,13 @@ export async function syncContactToProvider(
     return { ok: false, error: "Keine sevdesk-Verbindung konfiguriert." };
   }
 
-  const apiKey = decryptSecret(encryptedKey);
+  let apiKey: string;
+  try {
+    apiKey = decryptSecret(encryptedKey);
+  } catch {
+    return { ok: false, error: "Server-Konfiguration unvollständig (INTEGRATION_ENCRYPTION_KEY fehlt oder ist ungültig)." };
+  }
+
   const result = await getInvoiceProvider(provider).upsertContact(apiKey, contact, null);
 
   if (!result.ok) {
