@@ -47,6 +47,8 @@ export type CreateInvoiceInput = {
   /** Freitext-Marker im Rechnungskopf, z. B. "Angebot #42" - dient auch der Wiedererkennung (findInvoiceByReference). */
   referenceHeader: string;
   invoiceDate: string;
+  /** Mehrzeilige, formatierte Anschrift (Name, Straße, PLZ/Ort, Land) - sevdesk übernimmt sie nicht automatisch vom Kontakt. */
+  customerAddressText: string;
   positions: InvoicePosition[];
 };
 

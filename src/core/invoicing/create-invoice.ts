@@ -2,7 +2,28 @@ import { createClient } from "@/core/supabase/server";
 import { decryptSecret } from "@/core/crypto/secret-box";
 import { getInvoiceProvider } from "@/core/invoicing";
 import { syncContactToProvider } from "@/core/invoicing/sync-contact";
+import { contactDisplayName } from "@/core/crm/contact";
 import type { InvoicePosition, MirroredInvoiceStatus } from "@/core/invoicing/provider";
+
+/** sevdesk übernimmt die Anschrift nicht automatisch vom Kontakt - die Rechnung braucht eine eigene, mehrzeilige Anschrift. */
+function formatCustomerAddress(contact: {
+  type: "privat" | "gewerblich";
+  company_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  street: string | null;
+  postal_code: string | null;
+  city: string | null;
+  country: string;
+}): string {
+  const lines = [
+    contactDisplayName(contact),
+    contact.street,
+    [contact.postal_code, contact.city].filter(Boolean).join(" "),
+    contact.country === "DE" ? "Deutschland" : contact.country,
+  ].filter((line) => line && line.trim() !== "");
+  return lines.join("\n");
+}
 
 export type CreateInvoiceForQuoteResult =
   | { ok: true; invoiceId: string; alreadyExisted: boolean }
@@ -75,6 +96,16 @@ export async function createInvoiceForQuote(quoteId: string): Promise<CreateInvo
     return { ok: false, error: contactSync.error };
   }
 
+  const { data: contact, error: contactError } = await supabase
+    .from("contacts")
+    .select("type, company_name, first_name, last_name, street, postal_code, city, country")
+    .eq("id", quote.customer_id)
+    .maybeSingle();
+  if (contactError || !contact) {
+    return { ok: false, error: "Kunde konnte nicht geladen werden." };
+  }
+  const customerAddressText = formatCustomerAddress(contact);
+
   const provider = getInvoiceProvider("sevdesk");
   const referenceMarker = `Angebot #${quote.quote_number}`;
 
@@ -126,6 +157,7 @@ export async function createInvoiceForQuote(quoteId: string): Promise<CreateInvo
       externalContactId: contactSync.externalContactId,
       referenceHeader: referenceMarker,
       invoiceDate: quote.quote_date,
+      customerAddressText,
       positions,
     });
     if (!result.ok) {

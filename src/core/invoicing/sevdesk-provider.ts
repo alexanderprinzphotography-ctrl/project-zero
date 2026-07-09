@@ -60,6 +60,35 @@ async function extractSevdeskErrorDetail(res: Response): Promise<string | null> 
   }
 }
 
+/**
+ * Serialisiert ein verschachteltes Objekt/Array in klassische PHP-Bracket-
+ * Formkodierung (z. B. invoice[contact][id]=123&invoicePosSave[0][name]=Foo),
+ * so wie es der sevdesk-Factory-Endpunkt erwartet. Nested-JSON wird von
+ * diesem Endpunkt nicht verstanden (siehe createInvoice-Kommentar).
+ */
+function toBracketFormBody(payload: Record<string, unknown>): string {
+  const params = new URLSearchParams();
+
+  function walk(prefix: string, value: unknown): void {
+    if (value === null || value === undefined) return;
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => walk(`${prefix}[${index}]`, item));
+    } else if (typeof value === "object") {
+      for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+        walk(`${prefix}[${key}]`, val);
+      }
+    } else {
+      params.append(prefix, String(value));
+    }
+  }
+
+  for (const [key, value] of Object.entries(payload)) {
+    walk(key, value);
+  }
+
+  return params.toString();
+}
+
 function contactName(contact: ContactInput): string {
   if (contact.type === "gewerblich" && contact.company_name?.trim()) {
     return contact.company_name.trim();
@@ -166,6 +195,9 @@ export class SevdeskProvider implements InvoiceProvider {
         contactPerson: { id: contactPersonId, objectName: "SevUser" },
         invoiceDate: input.invoiceDate,
         header: input.referenceHeader,
+        // sevdesk uebernimmt die Anschrift NICHT automatisch vom verknuepften
+        // Kontakt - die Rechnung braucht ihre eigene (denormalisierte) Anschrift.
+        address: input.customerAddressText,
         status: 100,
         invoiceType: "RE",
         currency: "EUR",
@@ -175,16 +207,21 @@ export class SevdeskProvider implements InvoiceProvider {
         taxRate: input.positions[0]?.taxRatePercent ?? 19,
       },
       invoicePosSave,
-      invoicePosDelete: null,
-      discountSave: null,
-      discountDelete: null,
     };
 
+    // Der Factory-Endpunkt (POST /Invoice/Factory/saveInvoice) ist ein
+    // aelterer PHP-Model/Factory-Codepfad, der - anders als die restlichen
+    // sevdesk-Endpunkte - klassische PHP-Bracket-Formkodierung erwartet statt
+    // verschachteltem JSON. Mit JSON wurde die Rechnung zwar angelegt (Pflicht-
+    // felder auf oberster Ebene wurden erkannt), aber Kontakt/Anschrift/Preis/
+    // Positionen blieben leer, weil die verschachtelten Strukturen nicht
+    // richtig geparst wurden.
     let createRes: Response;
     try {
       createRes = await sevdeskFetch(apiKey, "/Invoice/Factory/saveInvoice", {
         method: "POST",
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: toBracketFormBody(payload),
       });
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : "Verbindung zu sevdesk fehlgeschlagen." };

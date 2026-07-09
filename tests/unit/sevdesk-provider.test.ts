@@ -83,10 +83,16 @@ const INVOICE_INPUT: CreateInvoiceInput = {
   externalContactId: "555",
   referenceHeader: "Angebot #42",
   invoiceDate: "2026-07-09",
+  customerAddressText: "Mustermann Bau GmbH\nMusterstraße 1\n12345 Musterstadt\nDeutschland",
   positions: [
     { name: "Trockenbau", quantity: 12.5, unitLabel: "Stunde", unitPriceNetCents: 1999, taxRatePercent: 19 },
   ],
 };
+
+/** POST-Body des Factory-Endpunkts ist PHP-Bracket-formkodiert (kein JSON) - fuers Testen als flache Map zurueckgeben. */
+function parseBracketFormBody(body: string): URLSearchParams {
+  return new URLSearchParams(body);
+}
 
 function mockCreateInvoiceFetch(unities: { id: string; name: string }[], invoiceNumber: string) {
   return vi.fn().mockImplementation((url: string) => {
@@ -134,11 +140,14 @@ describe("SevdeskProvider.createInvoice", () => {
     });
 
     const createCall = fetchMock.mock.calls.find((call: unknown[]) => (call[0] as string).includes("Factory/saveInvoice"));
-    const body = JSON.parse(createCall![1].body);
-    expect(body.invoice.status).toBe(100);
-    expect(body.invoice.taxRate).toBe(19);
-    expect(body.invoice.contactPerson).toEqual({ id: "42", objectName: "SevUser" });
-    expect(body.invoicePosSave[0].unity.id).toBe("3");
+    expect(createCall![1].headers["Content-Type"]).toBe("application/x-www-form-urlencoded");
+    const body = parseBracketFormBody(createCall![1].body);
+    expect(body.get("invoice[status]")).toBe("100");
+    expect(body.get("invoice[taxRate]")).toBe("19");
+    expect(body.get("invoice[contactPerson][id]")).toBe("42");
+    expect(body.get("invoice[contactPerson][objectName]")).toBe("SevUser");
+    expect(body.get("invoice[address]")).toBe(INVOICE_INPUT.customerAddressText);
+    expect(body.get("invoicePosSave[0][unity][id]")).toBe("3");
   });
 
   it("faellt ohne Namens-Treffer auf die erste Einheit zurueck, ohne Menge/Preis zu veraendern", async () => {
@@ -149,10 +158,10 @@ describe("SevdeskProvider.createInvoice", () => {
     expect(result.ok).toBe(true);
 
     const createCall = fetchMock.mock.calls.find((call: unknown[]) => (call[0] as string).includes("Factory/saveInvoice"));
-    const body = JSON.parse(createCall![1].body);
-    expect(body.invoicePosSave[0].unity.id).toBe("1");
-    expect(body.invoicePosSave[0].quantity).toBe(12.5);
-    expect(body.invoicePosSave[0].price).toBe(19.99);
+    const body = parseBracketFormBody(createCall![1].body);
+    expect(body.get("invoicePosSave[0][unity][id]")).toBe("1");
+    expect(body.get("invoicePosSave[0][quantity]")).toBe("12.5");
+    expect(body.get("invoicePosSave[0][price]")).toBe("19.99");
   });
 
   it("meldet einen Fehler, wenn sevdesk keine Einheiten hinterlegt hat", async () => {
