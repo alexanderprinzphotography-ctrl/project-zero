@@ -67,6 +67,12 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
     .order("name", { ascending: true });
   const catalogItems = (catalogRows as CatalogItemOption[] | null) ?? [];
 
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("provider_invoice_number")
+    .eq("quote_id", id)
+    .maybeSingle();
+
   const editable = isQuoteEditable(quote.status) && context.isWritable;
 
   return (
@@ -97,7 +103,11 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
         }
       />
 
-      <QuoteStatusActions quote={quote} canEdit={context.isWritable} />
+      <QuoteStatusActions
+        quote={quote}
+        canEdit={context.isWritable}
+        invoiceNumber={invoice?.provider_invoice_number ?? null}
+      />
 
       <Card>
         <CardHeader>

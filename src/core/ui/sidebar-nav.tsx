@@ -10,6 +10,7 @@ import {
   CreditCard,
   FileText,
   LayoutDashboard,
+  Receipt,
   Settings,
   Users,
   UsersRound,
@@ -33,6 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/einsatzplanung", label: "Einsatzplanung", icon: CalendarDays, visible: () => true },
   { href: "/team", label: "Team", icon: UsersRound, visible: (role) => role !== "mitarbeiter" },
   { href: "/angebote", label: "Angebote", icon: FileText, visible: (role) => role !== "mitarbeiter" },
+  { href: "/rechnungen", label: "Rechnungen", icon: Receipt, visible: (role) => role !== "mitarbeiter" },
   {
     href: "/leistungskatalog",
     label: "Leistungskatalog",

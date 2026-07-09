@@ -42,6 +42,13 @@ export async function QuoteListSection({
   const quotes = (data as QuoteSummaryRow[] | null) ?? [];
   const canUseAi = await hasFeature(supabase, "ki");
 
+  const quoteIds = quotes.map((quote) => quote.id);
+  const { data: invoiceRows } =
+    quoteIds.length > 0
+      ? await supabase.from("invoices").select("quote_id, provider_invoice_number").in("quote_id", quoteIds)
+      : { data: [] as { quote_id: string; provider_invoice_number: string }[] };
+  const invoiceByQuoteId = new Map((invoiceRows ?? []).map((row) => [row.quote_id, row.provider_invoice_number]));
+
   const params = new URLSearchParams();
   if (customerId) params.set("customerId", customerId);
   if (projectId) params.set("projectId", projectId);
@@ -59,6 +66,9 @@ export async function QuoteListSection({
               </span>
               <span className="flex items-center gap-2">
                 <Badge variant={quoteStatusVariant(quote.status)}>{quoteStatusLabel(quote.status)}</Badge>
+                {invoiceByQuoteId.has(quote.id) && (
+                  <Badge variant="success">Rechnung #{invoiceByQuoteId.get(quote.id)}</Badge>
+                )}
                 <span className="font-medium">{formatCentsAsEuro(quote.gross_total_cents)}</span>
               </span>
             </ListRow>

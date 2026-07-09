@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  centsToDecimalString,
   centsToEuroInputValue,
   formatCentsAsEuro,
   parseEuroInputToCents,
@@ -51,6 +52,22 @@ describe("Cent<->Euro Rundtrip", () => {
     for (let cents = 0; cents <= 10000; cents += 1) {
       const input = centsToEuroInputValue(cents);
       expect(parseEuroInputToCents(input)).toBe(cents);
+    }
+  });
+});
+
+describe("centsToDecimalString (MS 11b, sevdesk-Payload)", () => {
+  it("bildet Punkt-Dezimalstrings statt deutschem Komma, z. B. fuer 12,5 x 19,99 €", () => {
+    expect(centsToDecimalString(1999)).toBe("19.99");
+    expect(centsToDecimalString(2000)).toBe("20.00");
+    expect(centsToDecimalString(5)).toBe("0.05");
+    expect(centsToDecimalString(0)).toBe("0.00");
+  });
+
+  it("bleibt exakt (keine Float-Drift) fuer krumme Cent-Betraege", () => {
+    for (let cents = 0; cents <= 10000; cents += 7) {
+      const decimal = centsToDecimalString(cents);
+      expect(Math.round(Number(decimal) * 100)).toBe(cents);
     }
   });
 });

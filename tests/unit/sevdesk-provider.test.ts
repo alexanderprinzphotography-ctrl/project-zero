@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SevdeskProvider } from "@/core/invoicing/sevdesk-provider";
-import type { ContactInput } from "@/core/invoicing/provider";
+import type { ContactInput, CreateInvoiceInput } from "@/core/invoicing/provider";
 
 const CONTACT: ContactInput = {
   type: "gewerblich",
@@ -76,5 +76,153 @@ describe("SevdeskProvider.testConnection", () => {
     if (!result.ok) {
       expect(result.error).not.toContain("secret-key-xyz");
     }
+  });
+});
+
+const INVOICE_INPUT: CreateInvoiceInput = {
+  externalContactId: "555",
+  referenceHeader: "Angebot #42",
+  invoiceDate: "2026-07-09",
+  positions: [
+    { name: "Trockenbau", quantity: 12.5, unitLabel: "Stunde", unitPriceNetCents: 1999, taxRatePercent: 19 },
+  ],
+};
+
+function mockCreateInvoiceFetch(unities: { id: string; name: string }[], invoiceNumber: string) {
+  return vi.fn().mockImplementation((url: string) => {
+    if (url.includes("/Unity")) {
+      return Promise.resolve({ ok: true, status: 200, json: async () => ({ objects: unities }) });
+    }
+    if (url.includes("/Invoice/Factory/saveInvoice")) {
+      return Promise.resolve({ ok: true, status: 200, json: async () => ({ objects: { invoice: { id: "777" } } }) });
+    }
+    if (url.includes("/Invoice/777")) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ objects: { status: 100, invoiceNumber, dueDate: null } }),
+      });
+    }
+    throw new Error(`unerwarteter Aufruf: ${url}`);
+  });
+}
+
+describe("SevdeskProvider.createInvoice", () => {
+  it("loest die Einheit ueber GET /Unity per Namens-Match auf und legt die Rechnung mit status=100 an", async () => {
+    const fetchMock = mockCreateInvoiceFetch(
+      [
+        { id: "3", name: "Stunde" },
+        { id: "1", name: "Stück" },
+      ],
+      "RE-1001",
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await new SevdeskProvider().createInvoice("dummy-key", INVOICE_INPUT);
+
+    expect(result).toEqual({
+      ok: true,
+      externalInvoiceId: "777",
+      invoiceNumber: "RE-1001",
+      status: "entwurf",
+      invoiceDate: "2026-07-09",
+      dueDate: null,
+    });
+
+    const createCall = fetchMock.mock.calls.find((call: unknown[]) => (call[0] as string).includes("Factory/saveInvoice"));
+    const body = JSON.parse(createCall![1].body);
+    expect(body.invoice.status).toBe(100);
+    expect(body.invoicePosSave[0].unity.id).toBe("3");
+  });
+
+  it("faellt ohne Namens-Treffer auf die erste Einheit zurueck, ohne Menge/Preis zu veraendern", async () => {
+    const fetchMock = mockCreateInvoiceFetch([{ id: "1", name: "Stück" }], "RE-1002");
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await new SevdeskProvider().createInvoice("dummy-key", INVOICE_INPUT);
+    expect(result.ok).toBe(true);
+
+    const createCall = fetchMock.mock.calls.find((call: unknown[]) => (call[0] as string).includes("Factory/saveInvoice"));
+    const body = JSON.parse(createCall![1].body);
+    expect(body.invoicePosSave[0].unity.id).toBe("1");
+    expect(body.invoicePosSave[0].quantity).toBe(12.5);
+    expect(body.invoicePosSave[0].price).toBe(19.99);
+  });
+
+  it("meldet einen Fehler, wenn sevdesk keine Einheiten hinterlegt hat", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ objects: [] }) }),
+    );
+    const result = await new SevdeskProvider().createInvoice("dummy-key", INVOICE_INPUT);
+    expect(result.ok).toBe(false);
+  });
+});
+
+describe("SevdeskProvider.getInvoiceStatus", () => {
+  it("mappt bekannte sevdesk-Statuscodes korrekt (100/200/750/1000)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ objects: { status: 1000, invoiceNumber: "RE-2000", dueDate: "2026-08-01" } }),
+      }),
+    );
+    const result = await new SevdeskProvider().getInvoiceStatus("dummy-key", "42");
+    expect(result).toEqual({ ok: true, status: "bezahlt", invoiceNumber: "RE-2000", dueDate: "2026-08-01" });
+  });
+
+  it("meldet einen Fehler bei unbekanntem Statuscode statt zu raten", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ objects: { status: 999, invoiceNumber: "RE-2001", dueDate: null } }),
+      }),
+    );
+    const result = await new SevdeskProvider().getInvoiceStatus("dummy-key", "42");
+    expect(result.ok).toBe(false);
+  });
+});
+
+describe("SevdeskProvider.findInvoiceByReference", () => {
+  it("findet eine bestehende Rechnung anhand des header-Markers (Idempotenz-Netz)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          objects: [
+            { id: "10", header: "Sonstiges" },
+            { id: "20", header: "Rechnung zu Angebot #42" },
+          ],
+        }),
+      }),
+    );
+    const result = await new SevdeskProvider().findInvoiceByReference("dummy-key", "555", "Angebot #42");
+    expect(result).toBe("20");
+  });
+
+  it("liefert null ohne Treffer", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ objects: [] }) }),
+    );
+    const result = await new SevdeskProvider().findInvoiceByReference("dummy-key", "555", "Angebot #99");
+    expect(result).toBeNull();
+  });
+});
+
+describe("SevdeskProvider.getInvoicePdf", () => {
+  it("gibt das Base64-PDF aus der sevdesk-Antwort zurueck, ohne selbst etwas zu rendern", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ objects: "base64-pdf-inhalt" }) }),
+    );
+    const result = await new SevdeskProvider().getInvoicePdf("dummy-key", "42");
+    expect(result).toEqual({ ok: true, pdfBase64: "base64-pdf-inhalt" });
   });
 });

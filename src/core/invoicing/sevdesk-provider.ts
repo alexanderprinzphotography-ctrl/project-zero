@@ -1,7 +1,13 @@
 import { contactDisplayName } from "@/core/crm/contact";
+import { centsToDecimalString } from "@/core/money/cents";
 import type {
   ContactInput,
+  CreateInvoiceInput,
+  CreateInvoiceResult,
+  InvoicePdfResult,
   InvoiceProvider,
+  InvoiceStatusResult,
+  MirroredInvoiceStatus,
   TestConnectionResult,
   UpsertContactResult,
 } from "./provider";
@@ -113,15 +119,187 @@ export class SevdeskProvider implements InvoiceProvider {
     return { ok: true, externalContactId: String(externalContactId) };
   }
 
-  async createInvoice(): Promise<never> {
-    throw new Error("Rechnungserstellung ist noch nicht implementiert (kommt in MS 11b).");
+  async createInvoice(apiKey: string, input: CreateInvoiceInput): Promise<CreateInvoiceResult> {
+    let unities: SevdeskUnity[];
+    try {
+      unities = await fetchUnities(apiKey);
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : "Verbindung zu sevdesk fehlgeschlagen." };
+    }
+    if (unities.length === 0) {
+      return { ok: false, error: "sevdesk hat keine Einheiten (Unity) hinterlegt." };
+    }
+
+    const invoicePosSave = input.positions.map((position) => ({
+      objectName: "InvoicePos",
+      mapAll: true,
+      quantity: position.quantity,
+      price: Number(centsToDecimalString(position.unitPriceNetCents)),
+      name: position.name,
+      taxRate: position.taxRatePercent,
+      unity: { id: resolveUnityId(unities, position.unitLabel), objectName: "Unity" },
+    }));
+
+    const payload = {
+      invoice: {
+        objectName: "Invoice",
+        mapAll: true,
+        contact: { id: input.externalContactId, objectName: "Contact" },
+        invoiceDate: input.invoiceDate,
+        header: input.referenceHeader,
+        status: 100,
+        invoiceType: "RE",
+        currency: "EUR",
+        taxType: "default",
+      },
+      invoicePosSave,
+      invoicePosDelete: null,
+      discountSave: null,
+      discountDelete: null,
+    };
+
+    let createRes: Response;
+    try {
+      createRes = await sevdeskFetch(apiKey, "/Invoice/Factory/saveInvoice", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : "Verbindung zu sevdesk fehlgeschlagen." };
+    }
+
+    if (createRes.status === 401 || createRes.status === 403) {
+      return { ok: false, error: "Ungültiger sevdesk-API-Schlüssel." };
+    }
+    if (createRes.status === 429) {
+      return { ok: false, error: "sevdesk-Rate-Limit erreicht, bitte später erneut versuchen." };
+    }
+    if (!createRes.ok) {
+      return { ok: false, error: `Rechnung konnte nicht angelegt werden (sevdesk-Status ${createRes.status}).` };
+    }
+
+    const created = (await createRes.json()) as { objects?: { invoice?: { id?: string | number } } };
+    const externalInvoiceId = created.objects?.invoice?.id;
+    if (externalInvoiceId === undefined || externalInvoiceId === null) {
+      return { ok: false, error: "sevdesk-Antwort enthielt keine Rechnungs-ID." };
+    }
+
+    // Kanonische, vollstaendige Rechnung nachladen statt die Create-Response-Form zu erraten.
+    const status = await this.getInvoiceStatus(apiKey, String(externalInvoiceId));
+    if (!status.ok) return status;
+    return {
+      ok: true,
+      externalInvoiceId: String(externalInvoiceId),
+      invoiceNumber: status.invoiceNumber,
+      status: status.status,
+      invoiceDate: input.invoiceDate,
+      dueDate: status.dueDate,
+    };
   }
 
-  async getInvoiceStatus(): Promise<never> {
-    throw new Error("Rechnungsstatus ist noch nicht implementiert (kommt in MS 11b).");
+  async getInvoiceStatus(apiKey: string, externalInvoiceId: string): Promise<InvoiceStatusResult> {
+    let res: Response;
+    try {
+      res = await sevdeskFetch(apiKey, `/Invoice/${externalInvoiceId}`);
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : "Verbindung zu sevdesk fehlgeschlagen." };
+    }
+    if (res.status === 401 || res.status === 403) {
+      return { ok: false, error: "Ungültiger sevdesk-API-Schlüssel." };
+    }
+    if (!res.ok) {
+      return { ok: false, error: `Rechnungsstatus konnte nicht abgerufen werden (Status ${res.status}).` };
+    }
+
+    const data = (await res.json()) as {
+      objects?: { status?: string | number; invoiceNumber?: string; dueDate?: string | null };
+    };
+    const raw = data.objects;
+    if (!raw) {
+      return { ok: false, error: "sevdesk-Antwort enthielt keine Rechnungsdaten." };
+    }
+
+    const status = mapSevdeskStatus(raw.status);
+    if (!status) {
+      return { ok: false, error: `Unbekannter sevdesk-Rechnungsstatus (${String(raw.status)}).` };
+    }
+
+    return {
+      ok: true,
+      status,
+      invoiceNumber: raw.invoiceNumber ?? "",
+      dueDate: raw.dueDate ?? null,
+    };
   }
 
-  async getInvoicePdf(): Promise<never> {
-    throw new Error("Rechnungs-PDF ist noch nicht implementiert (kommt in MS 11b).");
+  async getInvoicePdf(apiKey: string, externalInvoiceId: string): Promise<InvoicePdfResult> {
+    let res: Response;
+    try {
+      res = await sevdeskFetch(apiKey, `/Invoice/${externalInvoiceId}/getPdf?download=false`);
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : "Verbindung zu sevdesk fehlgeschlagen." };
+    }
+    if (!res.ok) {
+      return { ok: false, error: `PDF konnte nicht abgerufen werden (Status ${res.status}).` };
+    }
+
+    const data = (await res.json()) as { objects?: string };
+    if (!data.objects) {
+      return { ok: false, error: "sevdesk-Antwort enthielt kein PDF." };
+    }
+    return { ok: true, pdfBase64: data.objects };
+  }
+
+  async findInvoiceByReference(
+    apiKey: string,
+    externalContactId: string,
+    referenceMarker: string,
+  ): Promise<string | null> {
+    let res: Response;
+    try {
+      res = await sevdeskFetch(apiKey, `/Invoice?contact[id]=${encodeURIComponent(externalContactId)}&contact[objectName]=Contact`);
+    } catch {
+      return null;
+    }
+    if (!res.ok) return null;
+
+    const data = (await res.json()) as { objects?: { id?: string | number; header?: string | null }[] };
+    const match = (data.objects ?? []).find((invoice) => invoice.header?.includes(referenceMarker));
+    return match?.id !== undefined && match?.id !== null ? String(match.id) : null;
+  }
+}
+
+type SevdeskUnity = { id: string; name: string };
+
+async function fetchUnities(apiKey: string): Promise<SevdeskUnity[]> {
+  const res = await sevdeskFetch(apiKey, "/Unity");
+  if (!res.ok) {
+    throw new Error(`Einheiten konnten nicht von sevdesk geladen werden (Status ${res.status}).`);
+  }
+  const data = (await res.json()) as { objects?: { id?: string | number; name?: string }[] };
+  return (data.objects ?? [])
+    .filter((u) => u.id !== undefined && u.id !== null && u.name)
+    .map((u) => ({ id: String(u.id), name: String(u.name) }));
+}
+
+/** Case-insensitives Namens-Matching gegen unser Freitext-Einheiten-Feld; ohne Treffer erste Einheit als kosmetischer Fallback (beeinflusst weder Menge noch Preis). */
+function resolveUnityId(unities: SevdeskUnity[], unitLabel: string): string | undefined {
+  const needle = unitLabel.trim().toLowerCase();
+  const match = unities.find((u) => u.name.trim().toLowerCase() === needle);
+  return (match ?? unities[0])?.id;
+}
+
+function mapSevdeskStatus(raw: string | number | undefined): MirroredInvoiceStatus | null {
+  switch (String(raw)) {
+    case "100":
+      return "entwurf";
+    case "200":
+      return "offen";
+    case "750":
+      return "teilbezahlt";
+    case "1000":
+      return "bezahlt";
+    default:
+      return null;
   }
 }

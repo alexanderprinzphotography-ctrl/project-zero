@@ -37,3 +37,12 @@ export function centsToEuroInputValue(cents: number): string {
     .padStart(2, "0");
   return `${wholePart},${fractionPart}`;
 }
+
+/** Cent -> Dezimal-String mit Punkt (z. B. 1999 -> "19.99") für JSON-Payloads an Drittsysteme (MS 11b, sevdesk). Reine Integer-String-Bildung, kein Float. */
+export function centsToDecimalString(cents: number): string {
+  const wholePart = Math.trunc(cents / 100);
+  const fractionPart = Math.abs(cents % 100)
+    .toString()
+    .padStart(2, "0");
+  return `${wholePart}.${fractionPart}`;
+}

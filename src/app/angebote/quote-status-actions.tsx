@@ -1,23 +1,57 @@
 "use client";
 
 import { useActionState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Quote } from "@/core/quotes/quote";
 import { approveQuote, setQuoteStatus, submitQuoteForApproval, type QuoteActionState } from "./actions";
+import { createInvoiceAction, type InvoiceActionState } from "./invoice-actions";
 
 const INITIAL_STATE: QuoteActionState = { error: null };
+const INITIAL_INVOICE_STATE: InvoiceActionState = { error: null, success: null };
 
-export function QuoteStatusActions({ quote, canEdit }: { quote: Quote; canEdit: boolean }) {
+export function QuoteStatusActions({
+  quote,
+  canEdit,
+  invoiceNumber,
+}: {
+  quote: Quote;
+  canEdit: boolean;
+  invoiceNumber: string | null;
+}) {
   const [submitState, submitAction, submitPending] = useActionState(submitQuoteForApproval, INITIAL_STATE);
   const [approveState, approveAction, approvePending] = useActionState(approveQuote, INITIAL_STATE);
   const [statusState, statusAction, statusPending] = useActionState(setQuoteStatus, INITIAL_STATE);
+  const [invoiceState, invoiceAction, invoicePending] = useActionState(
+    createInvoiceAction,
+    INITIAL_INVOICE_STATE,
+  );
 
-  if (!canEdit) return null;
+  if (!canEdit) {
+    if (quote.status === "angenommen" && invoiceNumber) {
+      return <Badge variant="success">Rechnung #{invoiceNumber} erstellt</Badge>;
+    }
+    return null;
+  }
 
-  const error = submitState.error || approveState.error || statusState.error;
+  const error = submitState.error || approveState.error || statusState.error || invoiceState.error;
 
   return (
     <div className="flex flex-col gap-2">
+      {quote.status === "angenommen" && (
+        <div>
+          {invoiceNumber ? (
+            <Badge variant="success">Rechnung #{invoiceNumber} erstellt</Badge>
+          ) : (
+            <form action={invoiceAction}>
+              <input type="hidden" name="quoteId" value={quote.id} />
+              <Button type="submit" size="sm" disabled={invoicePending}>
+                {invoicePending ? "…" : "Rechnung erstellen"}
+              </Button>
+            </form>
+          )}
+        </div>
+      )}
       <div className="flex flex-wrap gap-2">
         {(quote.status === "entwurf" || quote.status === "zur_freigabe") && (
           <>
