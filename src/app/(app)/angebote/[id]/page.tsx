@@ -20,6 +20,7 @@ import { DeleteQuoteButton } from "../delete-quote-button";
 import { QuoteItemList } from "../quote-item-list";
 import { QuoteStatusActions } from "../quote-status-actions";
 import { ShareLinkSection } from "../share-link-section";
+import { SendEmailDialog } from "../send-email-dialog";
 import type { CatalogItemOption } from "../quote-item-form";
 
 type QuoteDetailRow = Quote & {
@@ -29,8 +30,17 @@ type QuoteDetailRow = Quote & {
     company_name: string | null;
     first_name: string | null;
     last_name: string | null;
+    email: string | null;
   } | null;
   projects: { id: string; title: string } | null;
+};
+
+type EmailLogRow = {
+  id: string;
+  to_email: string;
+  status: "gesendet" | "fehler";
+  error_message: string | null;
+  sent_at: string;
 };
 
 function formatDate(value: string): string {
@@ -46,7 +56,7 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
   const supabase = await createClient();
   const { data: quote } = await supabase
     .from("quotes")
-    .select("*, contacts(id, type, company_name, first_name, last_name), projects(id, title)")
+    .select("*, contacts(id, type, company_name, first_name, last_name, email), projects(id, title)")
     .eq("id", id)
     .maybeSingle<QuoteDetailRow>();
 
@@ -88,7 +98,17 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
     .eq("quote_id", id)
     .maybeSingle();
 
+  const { data: emailLogRows } = await supabase
+    .from("email_log")
+    .select("id, to_email, status, error_message, sent_at")
+    .eq("quote_id", id)
+    .order("sent_at", { ascending: false })
+    .limit(5);
+  const emailLog = (emailLogRows as EmailLogRow[] | null) ?? [];
+
   const editable = isQuoteEditable(quote.status) && context.isWritable;
+  const canSendEmail =
+    context.isWritable && ["freigegeben", "gesendet"].includes(quote.status) && Boolean(quote.contacts?.email);
 
   return (
     <NarrowContainer className="flex flex-col gap-6">
@@ -126,15 +146,37 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
 
       <Card>
         <CardHeader>
-          <CardTitle>Link für Kunden</CardTitle>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle>Link für Kunden</CardTitle>
+            {canSendEmail && (
+              <SendEmailDialog
+                quoteId={quote.id}
+                quoteNumber={quote.quote_number}
+                companyName={context.companyName}
+                defaultRecipientEmail={quote.contacts?.email ?? ""}
+              />
+            )}
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-4">
           <ShareLinkSection
             quoteId={quote.id}
             activeLink={activeLink}
             response={quoteResponse ?? null}
             canWrite={context.isWritable}
           />
+          {emailLog.length > 0 && (
+            <div className="flex flex-col gap-1 border-t border-border pt-3 text-sm">
+              <span className="text-xs text-muted-foreground">Mail-Verlauf</span>
+              {emailLog.map((entry) => (
+                <p key={entry.id} className={entry.status === "fehler" ? "text-destructive" : ""}>
+                  {entry.status === "gesendet" ? "Gesendet" : "Fehler"} am{" "}
+                  {new Date(entry.sent_at).toLocaleString("de-DE")} an {entry.to_email}
+                  {entry.status === "fehler" && entry.error_message && `: ${entry.error_message}`}
+                </p>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

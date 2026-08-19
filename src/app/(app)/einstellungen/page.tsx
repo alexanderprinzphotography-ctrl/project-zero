@@ -10,6 +10,7 @@ import { ProjectVisibilityForm } from "./project-visibility-form";
 import { ScheduleVisibilityForm } from "./schedule-visibility-form";
 import { AutoReleaseForm } from "./auto-release-form";
 import { IntegrationForm } from "./integration-form";
+import { ContactSettingsForm } from "./contact-settings-form";
 
 type IntegrationRow = {
   status: "ok" | "error";
@@ -80,6 +81,18 @@ export default async function EinstellungenPage() {
           <AutoReleaseForm
             initialEnabled={context.autoReleaseEnabled}
             initialLimitCents={context.autoReleaseLimitCents}
+            readOnly={!context.isWritable}
+          />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Kontakt für Kunden-Mails</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ContactSettingsForm
+            initialReplyToEmail={context.replyToEmail}
+            initialContactPhone={context.contactPhone}
             readOnly={!context.isWritable}
           />
         </CardContent>

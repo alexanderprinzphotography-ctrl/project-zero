@@ -18,6 +18,8 @@ export type UserContext = {
   scheduleVisibility: string;
   autoReleaseEnabled: boolean;
   autoReleaseLimitCents: number;
+  replyToEmail: string | null;
+  contactPhone: string | null;
 };
 
 type ProfileRow = {
@@ -36,6 +38,8 @@ type ProfileRow = {
     schedule_visibility: string;
     auto_release_enabled: boolean;
     auto_release_limit_cents: number;
+    reply_to_email: string | null;
+    contact_phone: string | null;
   } | null;
 };
 
@@ -69,7 +73,7 @@ export async function getUserContext(): Promise<UserContext | null> {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "company_id, full_name, role, email, companies(name, plan_status, trial_ends_at, primary_color, accent_color, logo_url, project_visibility, schedule_visibility, auto_release_enabled, auto_release_limit_cents)",
+      "company_id, full_name, role, email, companies(name, plan_status, trial_ends_at, primary_color, accent_color, logo_url, project_visibility, schedule_visibility, auto_release_enabled, auto_release_limit_cents, reply_to_email, contact_phone)",
     )
     .eq("id", user.id)
     .maybeSingle<ProfileRow>();
@@ -98,5 +102,7 @@ export async function getUserContext(): Promise<UserContext | null> {
     scheduleVisibility: profile.companies?.schedule_visibility ?? "team",
     autoReleaseEnabled: profile.companies?.auto_release_enabled ?? false,
     autoReleaseLimitCents: profile.companies?.auto_release_limit_cents ?? 0,
+    replyToEmail: profile.companies?.reply_to_email ?? null,
+    contactPhone: profile.companies?.contact_phone ?? null,
   };
 }

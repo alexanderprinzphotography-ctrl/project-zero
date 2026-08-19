@@ -192,6 +192,47 @@ export async function updateAutoReleaseSettings(
   return { error: null, success: true };
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function updateContactSettings(
+  _prevState: ThemeActionState,
+  formData: FormData,
+): Promise<ThemeActionState> {
+  const context = await getUserContext();
+  if (!context || context.role !== "admin") {
+    return { error: "Nur Admins können die Kontaktdaten ändern.", success: false };
+  }
+  if (!context.isWritable) {
+    return { error: "Testphase abgelaufen – Einstellungen sind gesperrt.", success: false };
+  }
+
+  const replyToEmailInput = String(formData.get("replyToEmail") ?? "").trim();
+  const contactPhoneInput = String(formData.get("contactPhone") ?? "").trim();
+
+  if (replyToEmailInput && !EMAIL_RE.test(replyToEmailInput)) {
+    return { error: "Bitte eine gültige E-Mail-Adresse angeben.", success: false };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("companies")
+    .update({
+      reply_to_email: replyToEmailInput || null,
+      contact_phone: contactPhoneInput || null,
+    })
+    .eq("id", context.companyId);
+
+  if (error) {
+    if (readonlyErrorMessage(error.message)) {
+      return { error: "Testphase abgelaufen – Einstellungen sind gesperrt.", success: false };
+    }
+    return { error: "Kontaktdaten konnten nicht gespeichert werden.", success: false };
+  }
+
+  revalidatePath("/", "layout");
+  return { error: null, success: true };
+}
+
 export async function uploadLogo(
   _prevState: ThemeActionState,
   formData: FormData,
